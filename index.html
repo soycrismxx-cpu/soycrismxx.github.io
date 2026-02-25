@@ -1181,7 +1181,6 @@
                     <div class="month-label" id="monthLabel">Feb 2026</div>
                     <div class="month-btn" onclick="changeMonth(1)">›</div>
                 </div>
-                <button class="btn btn-primary" onclick="openNewModal()">+ Nuevo registro</button>
             </div>
         </div>
 
@@ -1809,7 +1808,8 @@
                     <input type="password" id="s-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
                 </div>
             </div>
-            <div class="form-grid" style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+            <div class="form-grid" id="admin-only-settings"
+                style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
                 <div class="form-group full"><label>🔐 Cambiar PINs de Acceso</label></div>
                 <div class="form-group"><label>PIN Trabajador</label>
                     <input type="password" id="s-pin-worker" placeholder="Defecto: 0000">
@@ -1882,9 +1882,9 @@
             document.body.classList.toggle('user-admin', isAdmin);
             document.body.classList.toggle('user-trabajador', !isAdmin);
 
-            // Configuración oculta para trabajadores
-            const sett = document.querySelector('.nav-item[onclick*="modal-settings"]');
-            if (sett) sett.style.display = isAdmin ? 'flex' : 'none';
+            // Configuración siempre visible, pero secciones sensibles protegidas
+            const adminSection = document.getElementById('admin-only-settings');
+            if (adminSection) adminSection.style.display = isAdmin ? 'grid' : 'none';
 
             refreshAll();
         }
