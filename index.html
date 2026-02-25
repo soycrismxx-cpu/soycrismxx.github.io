@@ -1170,7 +1170,12 @@
                 <i data-lucide="menu"></i>
             </div>
             <div class="topbar-left"><span class="page-title" id="pageTitle">Dashboard</span></div>
-            <div class="header-actions">
+            <div class="header-actions" style="display:flex;align-items:center;gap:15px">
+                <div id="sync-indicator" title="Sincronización con Supabase"
+                    style="opacity:0.3;transition:all 0.3s;display:flex;align-items:center;gap:5px;cursor:pointer"
+                    onclick="syncToDB()">
+                    <i data-lucide="cloud-check" style="width:18px;height:18px"></i>
+                </div>
                 <div class="month-selector">
                     <div class="month-btn" onclick="changeMonth(-1)">‹</div>
                     <div class="month-label" id="monthLabel">Feb 2026</div>
@@ -1804,6 +1809,15 @@
                     <input type="password" id="s-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
                 </div>
             </div>
+            <div class="form-grid" style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                <div class="form-group full"><label>🔐 Cambiar PINs de Acceso</label></div>
+                <div class="form-group"><label>PIN Trabajador</label>
+                    <input type="password" id="s-pin-worker" placeholder="Defecto: 0000">
+                </div>
+                <div class="form-group"><label>PIN Soporte (Admin)</label>
+                    <input type="password" id="s-pin-admin" placeholder="Defecto: 1234">
+                </div>
+            </div>
             <div class="form-actions">
                 <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Cerrar</button>
                 <button class="btn btn-primary" onclick="saveSettings()">Conectar y Guardar</button>
@@ -1814,7 +1828,14 @@
     <div id="toast"><span id="toast-icon">✓</span><span id="toast-msg">Guardado</span></div>
 
     <script>
-        const state = { facturas: [], gastos: [], ingresos: [], clientes: [], vehiculos: [], creditos: [], currentMonth: new Date().getMonth(), currentYear: new Date().getFullYear(), supabase: null, user: { role: 'guest' } };
+        const state = {
+            facturas: [], gastos: [], ingresos: [], clientes: [], vehiculos: [], creditos: [],
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            supabase: null,
+            user: { role: 'guest' },
+            security: { workerPin: '0000', adminPin: '1234' }
+        };
         const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         const MONTHS_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const pageTitles = { dashboard: 'Dashboard', facturas: 'Facturas', gastos: 'Control de Gastos', ingresos: 'Registro de Ingresos', impuestos: 'Gestión de Impuestos', clientes: 'Clientes', vehiculos: 'Flota de Vehículos', reportes: 'Reportes', settings: 'Configuración' };
@@ -1829,8 +1850,9 @@
 
         function doLogin() {
             const pin = document.getElementById('login-pin').value;
-            // PINS POR DEFECTO: Trabajador (0000), Soporte (1234)
-            if ((selectedRole === 'trabajador' && pin === '0000') || (selectedRole === 'admin' && pin === '1234')) {
+            const targetPin = selectedRole === 'admin' ? state.security.adminPin : state.security.workerPin;
+
+            if (pin === targetPin) {
                 state.user.role = selectedRole;
                 localStorage.setItem('tv_session', JSON.stringify({ role: selectedRole, expiry: Date.now() + 86400000 }));
                 document.getElementById('login-overlay').style.display = 'none';
@@ -1881,33 +1903,66 @@
         async function saveSettings() {
             const url = document.getElementById('s-url').value.trim();
             const key = document.getElementById('s-key').value.trim();
+            const wPin = document.getElementById('s-pin-worker').value.trim();
+            const aPin = document.getElementById('s-pin-admin').value.trim();
+
+            if (!url || !key) {
+                toast('Ingresa la URL y Anon Key', 'error');
+                return;
+            }
+
+            // Actualizar PINs si se ingresaron nuevos
+            if (wPin) state.security.workerPin = wPin;
+            if (aPin) state.security.adminPin = aPin;
 
             localStorage.setItem('sb-url', url);
             localStorage.setItem('sb-key', key);
 
             if (initSupabase()) {
-                toast('Conectado a Supabase ✓');
-                await syncToDB();
-                closeModal('modal-settings');
+                toast('Intentando conectar...');
+                try {
+                    // Verificar conexión intentando leer
+                    const { data, error } = await state.supabase.from('app_data').select('id').eq('id', 1).single();
+                    if (error && error.code !== 'PGRST116') throw error;
+
+                    toast('Configuración y PINs guardados ✓');
+                    await syncToDB();
+                    closeModal('modal-settings');
+                } catch (err) {
+                    toast('Error de conexión con Supabase', 'error');
+                    console.error(err);
+                }
             } else {
                 toast('Configuración guardada localmente');
+                await syncToDB(); // Sincroniza a local
                 closeModal('modal-settings');
             }
         }
 
         async function syncToDB() {
             saveToLocal(); // Siempre guardar en local como respaldo
-            if (!state.supabase) return;
+            const syncIcon = document.getElementById('sync-indicator');
+            if (syncIcon) syncIcon.style.opacity = '1';
+
+            if (!state.supabase) {
+                if (syncIcon) syncIcon.style.opacity = '0.3';
+                return;
+            }
+
             try {
-                // Guardamos todo el estado en una tabla 'app_data' o similar
-                // Para simplificar esta implementación inicial, guardaremos el JSON completo
-                // El usuario deberá crear la tabla: create table app_data (id int primary key, data jsonb);
+                const dataToSave = { ...state, supabase: null };
                 const { error } = await state.supabase
                     .from('app_data')
-                    .upsert({ id: 1, data: state, updated_at: new Date() });
+                    .upsert({ id: 1, data: dataToSave, updated_at: new Date().toISOString() });
+
                 if (error) throw error;
+                if (syncIcon) {
+                    syncIcon.style.color = 'var(--green)';
+                    setTimeout(() => syncIcon.style.opacity = '0.5', 2000);
+                }
             } catch (err) {
                 console.error("DB Sync Error:", err);
+                if (syncIcon) syncIcon.style.color = 'var(--red)';
             }
         }
 
@@ -1920,27 +1975,48 @@
             // 1. Cargar de LocalStorage primero para rapidez
             const local = localStorage.getItem('transfinanzas_data');
             if (local) {
-                const parsed = JSON.parse(local);
-                Object.assign(state, parsed);
+                try {
+                    const parsed = JSON.parse(local);
+                    Object.assign(state, parsed);
+                } catch (e) { console.error("Error parsing local info", e); }
             }
 
             // 2. Intentar cargar de Supabase si está configurado
             if (initSupabase()) {
-                document.getElementById('s-url').value = localStorage.getItem('sb-url');
-                document.getElementById('s-key').value = localStorage.getItem('sb-key');
+                const sUrlEl = document.getElementById('s-url');
+                const sKeyEl = document.getElementById('s-key');
+                if (sUrlEl) sUrlEl.value = localStorage.getItem('sb-url');
+                if (sKeyEl) sKeyEl.value = localStorage.getItem('sb-key');
+
+                const syncIcon = document.getElementById('sync-indicator');
+                if (syncIcon) syncIcon.style.opacity = '1';
+
                 try {
                     const { data, error } = await state.supabase
                         .from('app_data')
                         .select('data')
                         .eq('id', 1)
                         .single();
+
+                    if (error) {
+                        if (error.code === 'PGRST116') {
+                            console.log("No remote data found, first run?");
+                            await syncToDB(); // Crear registro remoto inicial
+                        } else {
+                            throw error;
+                        }
+                    }
+
                     if (data && data.data) {
-                        // Mezclar o reemplazar? Aquí reemplazamos para priorizar la nube
+                        // Mezclar datos: Priorizamos los más recientes comparando si tuviéramos un timestamp,
+                        // por ahora, si hay datos en Supabase, reemplazamos el estado local.
                         Object.assign(state, data.data);
                         console.log("Datos cargados desde Supabase");
+                        if (syncIcon) syncIcon.style.color = 'var(--green)';
                     }
                 } catch (err) {
                     console.warn("No se pudo cargar de Supabase, usando local.", err);
+                    if (syncIcon) syncIcon.style.color = 'var(--red)';
                 }
             }
             refreshAll();
@@ -2002,7 +2078,14 @@
             lucide.createIcons();
             setTimeout(() => t.className = '', 2800);
         }
-        function openModal(id) { setTodayDates(); document.getElementById(id).classList.add('open'); }
+        function openModal(id) {
+            setTodayDates();
+            if (id === 'modal-settings') {
+                document.getElementById('s-pin-worker').value = state.security.workerPin;
+                document.getElementById('s-pin-admin').value = state.security.adminPin;
+            }
+            document.getElementById(id).classList.add('open');
+        }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         function setTodayDates() {
             const today = new Date().toISOString().split('T')[0];
