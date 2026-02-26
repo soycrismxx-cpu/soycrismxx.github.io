@@ -1171,15 +1171,22 @@
             </div>
             <div class="topbar-left"><span class="page-title" id="pageTitle">Dashboard</span></div>
             <div class="header-actions" style="display:flex;align-items:center;gap:15px">
-                <div id="sync-indicator" title="Sincronización con Supabase"
-                    style="opacity:0.3;transition:all 0.3s;display:flex;align-items:center;gap:5px;cursor:pointer"
-                    onclick="syncToDB()">
-                    <i data-lucide="cloud-check" style="width:18px;height:18px"></i>
+                <div id="sync-indicator"
+                    style="font-size:10px; opacity:0.3; transition: opacity .3s; display:flex; align-items:center; gap:5px;"
+                    title="Estado de Sincronización">
+                    <i data-lucide="refresh-cw" style="width:12px; height:12px;"></i>
+                    <span id="sync-text">Cloud</span>
                 </div>
+                <button class="btn btn-ghost" onclick="refreshAll()" title="Sincronizar y Recalcular todo"
+                    style="padding:5px 8px; font-size:16px;">
+                    <i data-lucide="refresh-cw" style="width:16px; height:16px;"></i>
+                </button>
                 <div class="month-selector">
-                    <div class="month-btn" onclick="changeMonth(-1)">‹</div>
+                    <div class="month-btn" onclick="changeMonth(-1)"><i data-lucide="chevron-left"
+                            style="width:16px; height:16px;"></i></div>
                     <div class="month-label" id="monthLabel">Feb 2026</div>
-                    <div class="month-btn" onclick="changeMonth(1)">›</div>
+                    <div class="month-btn" onclick="changeMonth(1)"><i data-lucide="chevron-right"
+                            style="width:16px; height:16px;"></i></div>
                 </div>
             </div>
         </div>
@@ -1215,7 +1222,8 @@
                             <div class="section-sub">Ingresos vs Gastos — últimos 6 meses</div>
                         </div>
                         <div style="display:flex;gap:12px;font-size:11px;align-items:center"><span
-                                style="color:#3b82f6">■ Ingresos</span><span style="color:#ef4444">■ Gastos</span></div>
+                                style="color:#3b82f6">■ Ingresos</span><span style="color:#ef4444">■ Gastos</span>
+                        </div>
                     </div>
                     <div id="barChart" class="bar-chart"></div>
                     <div style="display:flex;gap:8px;margin-top:6px;" id="barLabels"></div>
@@ -1260,7 +1268,8 @@
                             <tr>
                                 <td colspan="6">
                                     <div class="empty-state">
-                                        <div class="icon">📭</div>
+                                        <i data-lucide="inbox"
+                                            style="width:32px; height:32px; opacity:0.5; margin-bottom:10px;"></i>
                                         <p>Sin transacciones aún.</p>
                                     </div>
                                 </td>
@@ -1281,21 +1290,21 @@
             </div>
             <div class="invoice-filters">
                 <div class="filter-btn active" onclick="filterFacturas('all',this)">Todas</div>
-                <div class="filter-btn" onclick="filterFacturas('pendiente',this)">⏳ Pendientes</div>
-                <div class="filter-btn" onclick="filterFacturas('pagada',this)">✅ Pagadas</div>
-                <div class="filter-btn" onclick="filterFacturas('vencida',this)">🔴 Vencidas</div>
+                <div class="filter-btn" onclick="filterFacturas('pendiente',this)">Pendientes</div>
+                <div class="filter-btn" onclick="filterFacturas('pagada',this)">Pagadas</div>
+                <div class="filter-btn" onclick="filterFacturas('vencida',this)">Vencidas</div>
             </div>
             <div class="grid-3">
                 <div class="card stat-card yellow">
-                    <div class="stat-label">⏳ Por cobrar</div>
+                    <div class="stat-label">Por cobrar</div>
                     <div class="stat-value" id="f-pendiente">$0</div>
                 </div>
                 <div class="card stat-card green">
-                    <div class="stat-label">✅ Cobrado</div>
+                    <div class="stat-label">Cobrado</div>
                     <div class="stat-value" id="f-cobrado">$0</div>
                 </div>
                 <div class="card stat-card red">
-                    <div class="stat-label">🔴 Vencido</div>
+                    <div class="stat-label">Vencido</div>
                     <div class="stat-value" id="f-vencido">$0</div>
                 </div>
             </div>
@@ -1317,7 +1326,8 @@
                         <tr>
                             <td colspan="8">
                                 <div class="empty-state">
-                                    <div class="icon">🧾</div>
+                                    <i data-lucide="file-text"
+                                        style="width:32px; height:32px; opacity:0.5; margin-bottom:10px;"></i>
                                     <p>Sin facturas registradas.</p>
                                 </div>
                             </td>
@@ -1337,19 +1347,19 @@
             </div>
             <div class="grid-4">
                 <div class="card stat-card yellow">
-                    <div class="stat-label">⛽ Combustible</div>
+                    <div class="stat-label">Combustible</div>
                     <div class="stat-value" id="gc-combustible">$0</div>
                 </div>
                 <div class="card stat-card blue">
-                    <div class="stat-label">🔧 Mantenimiento</div>
+                    <div class="stat-label">Mantenimiento</div>
                     <div class="stat-value" id="gc-mantenimiento">$0</div>
                 </div>
                 <div class="card stat-card">
-                    <div class="stat-label">👷 Sueldos</div>
+                    <div class="stat-label">Sueldos</div>
                     <div class="stat-value" id="gc-sueldos">$0</div>
                 </div>
                 <div class="card stat-card red">
-                    <div class="stat-label">📦 Otros</div>
+                    <div class="stat-label">Otros</div>
                     <div class="stat-value" id="gc-otros">$0</div>
                 </div>
             </div>
@@ -1371,7 +1381,8 @@
                         <tr>
                             <td colspan="8">
                                 <div class="empty-state">
-                                    <div class="icon">📉</div>
+                                    <i data-lucide="trending-down"
+                                        style="width:32px; height:32px; opacity:0.5; margin-bottom:10px;"></i>
                                     <p>Sin gastos registrados.</p>
                                 </div>
                             </td>
@@ -1391,15 +1402,15 @@
             </div>
             <div class="grid-3">
                 <div class="card stat-card green">
-                    <div class="stat-label">💵 Total del mes</div>
+                    <div class="stat-label">Total del mes</div>
                     <div class="stat-value" id="i-mes">$0</div>
                 </div>
                 <div class="card stat-card blue">
-                    <div class="stat-label">📦 Nº de servicios</div>
+                    <div class="stat-label">Nº de servicios</div>
                     <div class="stat-value" id="i-servicios">0</div>
                 </div>
                 <div class="card stat-card yellow">
-                    <div class="stat-label">📈 Ticket promedio</div>
+                    <div class="stat-label">Ticket promedio</div>
                     <div class="stat-value" id="i-promedio">$0</div>
                 </div>
             </div>
@@ -1421,7 +1432,8 @@
                         <tr>
                             <td colspan="8">
                                 <div class="empty-state">
-                                    <div class="icon">📈</div>
+                                    <i data-lucide="trending-up"
+                                        style="width:32px; height:32px; opacity:0.5; margin-bottom:10px;"></i>
                                     <p>Sin ingresos registrados.</p>
                                 </div>
                             </td>
@@ -1453,7 +1465,8 @@
                 <div>
                     <div class="section-title">Flota de Vehículos</div>
                     <div class="section-sub">Control de tu flota</div>
-                </div><button class="btn btn-primary" onclick="openModal('modal-vehiculo')">+ Nuevo Vehículo</button>
+                </div><button class="btn btn-primary" onclick="openModal('modal-vehiculo')">+ Nuevo
+                    Vehículo</button>
             </div>
             <div class="grid-3" id="vehiculosGrid">
                 <div class="empty-state" style="grid-column:1/-1">
@@ -1518,7 +1531,8 @@
                         style="border-top:1px solid var(--border);padding-top:8px;font-weight:700;display:flex;justify-content:space-between">
                         <span>Impuesto Determinado:</span><span id="tax-isr-calc">$0</span>
                     </div>
-                    <p style="font-size:10px;color:var(--muted);margin-top:10px;">* El cálculo es una estimación basada
+                    <p style="font-size:10px;color:var(--muted);margin-top:10px;">* El cálculo es una estimación
+                        basada
                         en la suma de ingresos facturados.</p>
                 </div>
             </div>
@@ -1589,7 +1603,8 @@
                 <div>
                     <div class="section-title">Reportes Financieros</div>
                     <div class="section-sub">Resumen ejecutivo</div>
-                </div><button class="btn btn-ghost" onclick="window.print()">🖨️ Imprimir</button>
+                </div><button class="btn btn-ghost" onclick="window.print()"><i data-lucide="printer"
+                        style="width:16px;height:16px;margin-right:5px"></i> Imprimir</button>
             </div>
             <div id="reportContent"></div>
         </div>
@@ -1599,8 +1614,9 @@
     <div class="modal-overlay" id="modal-factura">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title">🧾 Nueva Factura</div>
-                <div class="modal-close" onclick="closeModal('modal-factura')">✕</div>
+                <div class="modal-title">Nueva Factura</div>
+                <div class="modal-close" onclick="closeModal('modal-factura')"><i data-lucide="x"
+                        style="width:18px;height:18px"></i></div>
             </div>
             <div class="form-grid">
                 <div class="form-group"><label>N° Factura</label><input type="text" id="f-numero"
@@ -1630,9 +1646,9 @@
                         <option value="10">10%</option>
                     </select></div>
                 <div class="form-group"><label>Estado</label><select id="f-estado">
-                        <option value="pendiente">⏳ Pendiente</option>
-                        <option value="pagada">✅ Pagada</option>
-                        <option value="vencida">🔴 Vencida</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="pagada">Pagada</option>
+                        <option value="vencida">Vencida</option>
                     </select></div>
                 <div class="form-group"><label>Vehículo</label><select id="f-vehiculo-sel">
                         <option value="">Sin asignar</option>
@@ -1650,20 +1666,21 @@
     <div class="modal-overlay" id="modal-gasto">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title">📉 Registrar Gasto</div>
-                <div class="modal-close" onclick="closeModal('modal-gasto')">✕</div>
+                <div class="modal-title">Registrar Gasto</div>
+                <div class="modal-close" onclick="closeModal('modal-gasto')"><i data-lucide="x"
+                        style="width:18px;height:18px"></i></div>
             </div>
             <div class="form-grid">
                 <div class="form-group full"><label>Concepto</label><input type="text" id="g-concepto"
                         placeholder="Ej: Gasolina unidad 3"></div>
                 <div class="form-group"><label>Categoría</label><select id="g-categoria">
-                        <option value="combustible">⛽ Combustible</option>
-                        <option value="mantenimiento">🔧 Mantenimiento</option>
-                        <option value="sueldos">👷 Sueldos</option>
-                        <option value="seguros">🛡️ Seguros</option>
-                        <option value="peajes">🛣️ Peajes/Casetas</option>
-                        <option value="neumaticos">🔘 Neumáticos</option>
-                        <option value="otros">📦 Otros</option>
+                        <option value="combustible">Combustible</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                        <option value="sueldos">Sueldos</option>
+                        <option value="seguros">Seguros</option>
+                        <option value="peajes">Peajes/Casetas</option>
+                        <option value="neumaticos">Neumáticos</option>
+                        <option value="otros">Otros</option>
                     </select></div>
                 <div class="form-group"><label>Fecha</label><input type="date" id="g-fecha"></div>
                 <div class="form-group"><label>Monto</label><input type="number" id="g-monto" placeholder="0.00"
@@ -1695,8 +1712,9 @@
     <div class="modal-overlay" id="modal-ingreso">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title">📈 Registrar Ingreso</div>
-                <div class="modal-close" onclick="closeModal('modal-ingreso')">✕</div>
+                <div class="modal-title">Registrar Ingreso</div>
+                <div class="modal-close" onclick="closeModal('modal-ingreso')"><i data-lucide="x"
+                        style="width:18px;height:18px"></i></div>
             </div>
             <div class="form-grid">
                 <div class="form-group full"><label>Concepto</label><input type="text" id="i-concepto"
@@ -1717,8 +1735,8 @@
                         <option value="general">General</option>
                     </select></div>
                 <div class="form-group"><label>Facturado</label><select id="i-facturado">
-                        <option value="si">✅ Sí (SAT)</option>
-                        <option value="no">❌ No (Efectivo/Otro)</option>
+                        <option value="si">Sí (SAT)</option>
+                        <option value="no">No (Efectivo/Otro)</option>
                     </select></div>
                 <div class="form-group full"><label>Notas</label><textarea id="i-notas"
                         placeholder="Referencia, orden, etc."></textarea></div>
@@ -1733,8 +1751,9 @@
     <div class="modal-overlay" id="modal-cliente">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title">👥 Nuevo Cliente</div>
-                <div class="modal-close" onclick="closeModal('modal-cliente')">✕</div>
+                <div class="modal-title">Nuevo Cliente</div>
+                <div class="modal-close" onclick="closeModal('modal-cliente')"><i data-lucide="x"
+                        style="width:18px;height:18px"></i></div>
             </div>
             <div class="form-grid">
                 <div class="form-group full"><label>Nombre / Razón Social</label><input type="text" id="c-nombre"
@@ -1758,8 +1777,9 @@
     <div class="modal-overlay" id="modal-vehiculo">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title">🚛 Nuevo Vehículo</div>
-                <div class="modal-close" onclick="closeModal('modal-vehiculo')">✕</div>
+                <div class="modal-title">Nuevo Vehículo</div>
+                <div class="modal-close" onclick="closeModal('modal-vehiculo')"><i data-lucide="x"
+                        style="width:18px;height:18px"></i></div>
             </div>
             <div class="form-grid">
                 <div class="form-group"><label>Alias / Nombre</label><input type="text" id="v-alias"
@@ -1778,9 +1798,9 @@
                         <option value="otro">Otro</option>
                     </select></div>
                 <div class="form-group"><label>Estado</label><select id="v-estado">
-                        <option value="activo">✅ Activo</option>
-                        <option value="mantenimiento">🔧 Mantenimiento</option>
-                        <option value="inactivo">❌ Inactivo</option>
+                        <option value="activo">Activo</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                        <option value="inactivo">Inactivo</option>
                     </select></div>
             </div>
             <div class="form-actions"><button class="btn btn-ghost"
@@ -1789,12 +1809,48 @@
         </div>
     </div>
 
+    <!-- MODAL CRÉDITO -->
+    <div class="modal-overlay" id="modal-credito">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Nuevo Crédito / Préstamo</div>
+                <div class="modal-close" onclick="closeModal('modal-credito')"><i data-lucide="x"
+                        style="width:18px;height:18px"></i></div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group full"><label>Entidad / Nombre del Crédito</label>
+                    <input type="text" id="c-nombre" placeholder="Ej: Crédito Unidad 1 - Banco XYZ">
+                </div>
+                <div class="form-group"><label>Monto Total Prestado</label>
+                    <input type="number" id="c-monto-total" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group"><label>Saldo Actual Pendiente</label>
+                    <input type="number" id="c-saldo" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group"><label>Cuota Mensual / Pago</label>
+                    <input type="number" id="c-cuota" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group"><label>Día de Pago (Mensual)</label>
+                    <input type="number" id="c-dia" placeholder="15" min="1" max="31">
+                </div>
+                <div class="form-group full"><label>Notas / Detalles</label>
+                    <textarea id="c-notas" placeholder="Tasa de interés, plazo, etc."></textarea>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost" onclick="closeModal('modal-credito')">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveCredito()">Guardar Crédito</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CONFIGURACIÓN -->
     <div class="modal-overlay" id="modal-settings">
         <div class="modal">
             <div class="modal-header">
-                <div class="modal-title">⚙️ Configuración de Supabase</div>
-                <div class="modal-close" onclick="closeModal('modal-settings')">✕</div>
+                <div class="modal-title">Configuración de Supabase</div>
+                <div class="modal-close" onclick="closeModal('modal-settings')"><i data-lucide="x"
+                        style="width:18px;height:18px"></i></div>
             </div>
             <div style="padding:15px; background:var(--surface2); border-radius:12px; margin-bottom:15px;">
                 <p style="font-size:12px; color:var(--muted); line-height:1.5;">Configura la conexión con tu base de
@@ -1810,7 +1866,7 @@
             </div>
             <div class="form-grid" id="admin-only-settings"
                 style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
-                <div class="form-group full"><label>🔐 Cambiar PINs de Acceso</label></div>
+                <div class="form-group full"><label>Cambiar PINs de Acceso</label></div>
                 <div class="form-group"><label>PIN Trabajador</label>
                     <input type="password" id="s-pin-worker" placeholder="Defecto: 0000">
                 </div>
@@ -2013,25 +2069,48 @@
                         Object.assign(state, data.data);
                         console.log("Datos cargados desde Supabase");
                         if (syncIcon) syncIcon.style.color = 'var(--green)';
+                        toast('Datos sincronizados con Supabase ✓', 'info');
                     }
                 } catch (err) {
                     console.warn("No se pudo cargar de Supabase, usando local.", err);
                     if (syncIcon) syncIcon.style.color = 'var(--red)';
+                    toast('Error al sincronizar con Supabase - Usando copia local', 'error');
                 }
             }
             refreshAll();
         }
 
         function refreshAll() {
+            const changed = checkConsistency();
             updateMonthLabel();
             refreshDashboard();
             refreshFacturas();
             refreshGastos();
             refreshIngresos();
+            refreshImpuestos(); // Asegurar que los impuestos se actualicen
             renderVehiculos();
             renderClientes();
             refreshCreditos();
             populateSelects();
+            if (changed) syncToDB();
+        }
+
+        function checkConsistency() {
+            let changed = false;
+            if (!state.ingresos) state.ingresos = [];
+            if (!state.facturas) state.facturas = [];
+
+            state.facturas.forEach(f => {
+                const hasIngreso = state.ingresos.some(i => i.facturaId === f.id);
+                if (f.estado === 'pagada' && !hasIngreso) {
+                    syncFacturaToIngreso(f.id);
+                    changed = true;
+                } else if (f.estado !== 'pagada' && hasIngreso) {
+                    state.ingresos = state.ingresos.filter(i => i.facturaId !== f.id);
+                    changed = true;
+                }
+            });
+            return changed;
         }
 
         function showPage(id) {
@@ -2096,12 +2175,46 @@
         function clearForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = '' }); }
         async function deleteRecord(list, id) {
             if (!confirm('¿Eliminar este registro?')) return;
+
+            // Si eliminamos una factura, también eliminar su ingreso vinculado
+            if (list === 'facturas') {
+                state.ingresos = state.ingresos.filter(i => i.facturaId !== id);
+            }
+
             state[list] = state[list].filter(r => r.id !== id);
             if (list === 'facturas') { refreshFacturas(); refreshDashboard(); }
             if (list === 'gastos') { refreshGastos(); refreshDashboard(); }
             if (list === 'ingresos') { refreshIngresos(); refreshDashboard(); }
             toast('Registro eliminado');
             await syncToDB();
+        }
+
+        // Sincronización Factura -> Ingreso
+        function syncFacturaToIngreso(id) {
+            const f = state.facturas.find(f => f.id === id);
+            if (!f) return;
+
+            // Eliminar ingreso previo si existe para esta factura
+            state.ingresos = state.ingresos.filter(i => i.facturaId !== id);
+
+            if (f.estado === 'pagada') {
+                // Crear el ingreso correspondiente
+                state.ingresos.push({
+                    id: 'I-' + f.id, // ID único vinculado
+                    facturaId: f.id,
+                    concepto: 'Pago Factura: ' + f.numero + ' - ' + f.descripcion,
+                    clienteId: f.clienteId,
+                    clienteNombre: f.clienteNombre,
+                    fecha: f.fecha, // Usamos fecha de emisión como referencia o hoy? El usuario dijo "conforme a lo facturado"
+                    monto: f.monto,
+                    subtotal: f.subtotal,
+                    iva: f.iva,
+                    metodo: 'transferencia',
+                    vehiculo: f.vehiculo,
+                    facturado: 'si',
+                    notas: 'Generado automáticamente desde Factura ' + f.numero
+                });
+            }
         }
 
         function populateSelects() {
@@ -2139,8 +2252,9 @@
             const notas = document.getElementById('f-notas').value.trim();
             const vehiculo = document.getElementById('f-vehiculo-sel').value;
             if (!descripcion || montoBase <= 0) { toast('Completa descripción y monto', 'error'); return; }
+            const fId = Date.now().toString();
             state.facturas.push({
-                id: Date.now().toString(),
+                id: fId,
                 numero,
                 clienteId,
                 clienteNombre,
@@ -2156,10 +2270,11 @@
                 notas,
                 vehiculo
             });
+            syncFacturaToIngreso(fId);
             closeModal('modal-factura');
             clearForm(['f-numero', 'f-descripcion', 'f-monto', 'f-notas', 'f-vencimiento']);
             document.getElementById('f-fecha').value = '';
-            refreshFacturas(); refreshDashboard(); toast('Factura guardada');
+            refreshFacturas(); refreshIngresos(); refreshDashboard(); toast('Factura guardada');
             syncToDB();
         }
 
@@ -2203,7 +2318,8 @@
             const f = state.facturas.find(f => f.id === id); if (!f) return;
             const order = ['pendiente', 'pagada', 'vencida'];
             f.estado = order[(order.indexOf(f.estado) + 1) % order.length];
-            refreshFacturas(); refreshDashboard(); toast('Estado → ' + f.estado);
+            syncFacturaToIngreso(id);
+            refreshFacturas(); refreshIngresos(); refreshDashboard(); toast('Estado → ' + f.estado);
             syncToDB();
         }
 
@@ -2348,7 +2464,7 @@
 
         function renderClientes() {
             const grid = document.getElementById('clientesGrid');
-            if (!state.clientes.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon" data-lucide="users"></div><p>Sin clientes registrados.</p></div>'; lucide.createIcons(); return; }
+            if (!state.clientes.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i data-lucide="users" style="width:32px; height:32px; opacity:0.5; margin-bottom:10px;"></i><p>Sin clientes registrados.</p></div>'; lucide.createIcons(); return; }
             grid.innerHTML = state.clientes.map(c => {
                 const deuda = state.facturas.filter(f => f.clienteId === c.id && f.estado === 'pendiente').reduce((a, f) => a + parseFloat(f.monto), 0);
                 return `<div class="client-card"><div class="client-avatar">${c.nombre.charAt(0).toUpperCase()}</div>
@@ -2375,25 +2491,35 @@
             if (!alias || !placas) { toast('Alias y placas son requeridos', 'error'); return; }
             state.vehiculos.push({ id: Date.now().toString(), alias, placas, marca: document.getElementById('v-marca').value.trim(), modelo: document.getElementById('v-modelo').value.trim(), tipo: document.getElementById('v-tipo').value, estado: document.getElementById('v-estado').value });
             closeModal('modal-vehiculo'); clearForm(['v-alias', 'v-placas', 'v-marca', 'v-modelo']);
-            renderVehiculos(); populateSelects(); toast('Vehículo guardado ✓');
+            renderVehiculos(); populateSelects(); toast('Vehículo guardado');
             syncToDB();
         }
 
         function renderVehiculos() {
             const grid = document.getElementById('vehiculosGrid');
-            if (!state.vehiculos.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon" data-lucide="truck"></div><p>Sin vehículos registrados.</p></div>'; lucide.createIcons(); return; }
+            if (!state.vehiculos.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i data-lucide="truck" style="width:32px; height:32px; opacity:0.5; margin-bottom:10px;"></i><p>Sin vehículos registrados.</p></div>'; lucide.createIcons(); return; }
             const eColor = { activo: 'badge-green', mantenimiento: 'badge-yellow', inactivo: 'badge-red' };
-            const tIcon = { camion: '🚛', trailer: '🚚', pickup: '🛻', van: '🚐', otro: '🚗' };
+            const tIcon = {
+                camion: '<i data-lucide="truck" style="width:24px;height:24px"></i>',
+                trailer: '<i data-lucide="truck" style="width:24px;height:24px"></i>',
+                pickup: '<i data-lucide="truck" style="width:24px;height:24px"></i>',
+                van: '<i data-lucide="truck" style="width:24px;height:24px"></i>',
+                otro: '<i data-lucide="truck" style="width:24px;height:24px"></i>'
+            };
             grid.innerHTML = state.vehiculos.map(v => {
                 const gMes = state.gastos.filter(g => g.vehiculo === v.id && isCurrentMonth(g.fecha)).reduce((a, g) => a + parseFloat(g.monto), 0);
                 const iMes = state.ingresos.filter(i => i.vehiculo === v.id && isCurrentMonth(i.fecha)).reduce((a, i) => a + parseFloat(i.monto), 0);
+                const nViajes = state.ingresos.filter(i => i.vehiculo === v.id).length;
                 return `<div class="card">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-      <div style="font-size:28px">${tIcon[v.tipo] || '🚗'}</div>
+      <div style="color:var(--accent)">${tIcon[v.tipo] || tIcon.otro}</div>
       <div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${v.alias}</div><div style="font-size:11px;color:var(--muted)">${v.placas}</div></div>
       <span class="badge ${eColor[v.estado] || 'badge-blue'}" style="margin-left:auto;font-size:10px">${v.estado}</span>
     </div>
-    <div style="font-size:12px;color:var(--muted2);margin-bottom:10px">${v.marca} ${v.modelo}</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <span>${v.marca} ${v.modelo}</span>
+        <span style="background:var(--accent-glow);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:600;font-size:10px">${nViajes} Servicios</span>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;margin-bottom:10px">
       <div style="background:var(--green-glow);border-radius:7px;padding:8px;border:1px solid rgba(16,185,129,.2)"><div style="color:var(--muted);font-size:10px;text-transform:uppercase">Ingresos</div><div style="color:var(--green);font-weight:700">${fmt(iMes)}</div></div>
       <div style="background:var(--red-glow);border-radius:7px;padding:8px;border:1px solid rgba(239,68,68,.2)"><div style="color:var(--muted);font-size:10px;text-transform:uppercase">Gastos</div><div style="color:var(--red);font-weight:700">${fmt(gMes)}</div></div>
@@ -2423,7 +2549,6 @@
             document.getElementById('dash-utilidad').textContent = fmt(utilidad);
             document.getElementById('dash-pendientes').textContent = pend;
             const ut = document.getElementById('dash-util-txt');
-            ut.style.color = utilidad >= 0 ? 'var(--green)' : 'var(--red)';
             ut.style.color = utilidad >= 0 ? 'var(--green)' : 'var(--red)';
             ut.textContent = utilidad >= 0 ? 'Ganancia' : 'Pérdida';
             renderBarChart(); renderDonut(mesGas); renderDashTable();
@@ -2479,31 +2604,42 @@
 
         // IMPUESTOS
         function refreshImpuestos() {
+            // Considerar todos los ingresos facturados del mes
             const mesIng = state.ingresos.filter(i => isCurrentMonth(i.fecha) && i.facturado === 'si');
             const mesGas = state.gastos.filter(g => isCurrentMonth(g.fecha));
 
+            // IVA Cobrado: De los ingresos facturados
             const ivaCobrado = mesIng.reduce((a, i) => a + (parseFloat(i.iva) || 0), 0);
-            const ivaPagado = mesGas.reduce((a, g) => a + (parseFloat(g.iva) || (parseFloat(g.monto) * 0.16 / 1.16)), 0);
+
+            // IVA Pagado: De los gastos (asumimos 16% si no se especifica, o usamos el valor guardado)
+            const ivaPagado = mesGas.reduce((a, g) => {
+                const sub = parseFloat(g.subtotal) || (parseFloat(g.monto) / 1.16);
+                const iva = parseFloat(g.iva) || (parseFloat(g.monto) - sub);
+                return a + iva;
+            }, 0);
 
             const ivaDiff = ivaCobrado - ivaPagado;
 
             const regime = document.getElementById('tax-regime').value;
+            // Base ISR: Subtotal de ingresos facturados
             const baseISR = mesIng.reduce((a, i) => a + (parseFloat(i.subtotal) || parseFloat(i.monto) / 1.16), 0);
             let isr = 0;
             let rateText = "";
 
             if (regime === 'resico') {
-                const rate = baseISR <= 25000 ? 0.01 : (baseISR <= 50000 ? 0.011 : 0.015);
+                const rate = baseISR <= 25000 ? 0.01 : (baseISR <= 50000 ? 0.011 : (baseISR <= 83333 ? 0.015 : (baseISR <= 208333 ? 0.02 : 0.025)));
                 isr = baseISR * rate;
                 rateText = `${(rate * 100).toFixed(1)}% (RESICO)`;
             } else {
-                const utilidad = Math.max(0, baseISR - (mesGas.reduce((a, g) => a + parseFloat(g.monto) / 1.16, 0)));
+                // Estimado PFAE: (Ingresos - Gastos) * 20% (muy simplificado)
+                const gastosBase = mesGas.reduce((a, g) => a + (parseFloat(g.subtotal) || parseFloat(g.monto) / 1.16), 0);
+                const utilidad = Math.max(0, baseISR - gastosBase);
                 isr = utilidad * 0.20;
                 rateText = "20% sobre utilidad (Estimado PFAE)";
             }
 
             document.getElementById('tax-iva-cobrado').textContent = fmt(ivaCobrado);
-            document.getElementById('tax-iva-pagado').textContent = fmt(ivaPagado);
+            document.getElementById('tax-iva-pagado').textContent = '-' + fmt(ivaPagado);
             document.getElementById('tax-iva-diff').textContent = fmt(ivaDiff);
             document.getElementById('tax-iva-pagar').textContent = fmt(Math.max(0, ivaDiff));
 
@@ -2614,6 +2750,7 @@
         }
 
         function refreshCreditos() {
+            if (!state.creditos) state.creditos = [];
             const totalDeuda = state.creditos.reduce((a, c) => a + c.saldo, 0);
             const deudaTotalEl = document.getElementById('c-deuda-total');
             if (deudaTotalEl) deudaTotalEl.textContent = fmt(totalDeuda);
@@ -2656,14 +2793,15 @@
             if (recEl) {
                 if (cuotasMes > 0) {
                     if (ingMes < cuotasMes) {
-                        recEl.innerHTML = `⚠️ Sus ingresos actuales (${fmt(ingMes)}) no cubren el total de sus cuotas (${fmt(cuotasMes)}). Se recomienda reducir gastos o buscar ingresos adicionales urgentemente.`;
+                        recEl.innerHTML = `<span style="color:var(--red);font-weight:700">Aviso:</span> Sus ingresos actuales (${fmt(ingMes)}) no cubren el total de sus cuotas (${fmt(cuotasMes)}). Se recomienda reducir gastos o buscar ingresos adicionales urgentemente.`;
                         recEl.style.color = "var(--red)";
                     } else {
                         const apartadoSug = (cuotasMes / 4).toFixed(2); // Dividir entre 4 semanas
-                        recEl.innerHTML = `✅ Para cubrir tus pagos mensuales de ${fmt(cuotasMes)}, sugerimos apartar **${fmt(apartadoSug)} semanalmente**. Actualmente, tus deudas consumen el ${pctCapacidad}% de tus ingresos operativos.`;
+                        recEl.innerHTML = `<span style="color:var(--green);font-weight:700">Sugerencia:</span> Para cubrir tus pagos mensuales de ${fmt(cuotasMes)}, sugerimos apartar **${fmt(apartadoSug)} semanalmente**. Actualmente, tus deudas consumen el ${pctCapacidad}% de tus ingresos operativos.`;
                         recEl.style.color = "var(--text)";
                     }
-                } else {
+                }
+                else {
                     recEl.textContent = "No tienes créditos activos. ¡Mantienes una excelente salud financiera!";
                     recEl.style.color = "var(--text)";
                 }
@@ -2676,7 +2814,8 @@
             const tb = document.getElementById('creditosTable');
             if (!tb) return;
             if (!state.creditos.length) {
-                tb.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">💳</div><p>No hay créditos registrados.</p></div></td></tr>';
+                tb.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i data-lucide="credit-card" style="width:32px; height:32px; opacity:0.5; margin-bottom:10px;"></i><p>No hay créditos registrados.</p></div></td></tr>';
+                lucide.createIcons();
                 return;
             }
             tb.innerHTML = state.creditos.map(c => `
