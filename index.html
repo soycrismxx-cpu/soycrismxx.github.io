@@ -9,6 +9,7 @@
         href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;700;800&family=Inter:wght@400;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
@@ -198,6 +199,16 @@
 
             50% {
                 opacity: .5
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
             }
         }
 
@@ -849,6 +860,68 @@
             color: var(--muted)
         }
 
+        /* Estilos para eliminación múltiple */
+        .select-col {
+            width: 40px;
+            text-align: center;
+            padding: 10px !important;
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent);
+            border-radius: 4px;
+        }
+
+        .bulk-actions {
+            display: none;
+            padding: 12px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border-heavy);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            animation: slideDown 0.3s ease;
+        }
+
+        .bulk-actions.active {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .bulk-actions {
+                position: fixed;
+                bottom: 80px;
+                left: 20px;
+                right: 20px;
+                z-index: 100;
+                margin-bottom: 0;
+                justify-content: space-between;
+                border-color: var(--accent);
+            }
+
+            .custom-checkbox {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
         .upload-zone:hover,
         .upload-zone.dragover {
             border-color: var(--accent);
@@ -1025,7 +1098,7 @@
         #login-overlay {
             position: fixed;
             inset: 0;
-            background: #ffffff;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -1035,11 +1108,11 @@
 
         .login-card {
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
             background: white;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
             border: 1px solid var(--border);
             text-align: center;
         }
@@ -1080,10 +1153,105 @@
             margin-bottom: 20px;
             font-size: 16px;
             outline: none;
+            font-family: inherit;
+            background: var(--surface2);
         }
 
         .login-input:focus {
             border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .login-step {
+            display: none;
+            animation: fadeIn .3s ease;
+        }
+
+        .login-step.active {
+            display: block;
+        }
+
+        .login-status {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1.4;
+        }
+
+        .login-status.connecting {
+            background: var(--accent-glow);
+            border: 1px solid rgba(30, 64, 175, 0.2);
+            color: var(--accent);
+        }
+
+        .login-status.connected {
+            background: var(--green-glow);
+            border: 1px solid rgba(5, 150, 105, 0.2);
+            color: var(--green);
+        }
+
+        .login-status.error {
+            background: var(--red-glow);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            color: var(--red);
+        }
+
+        .login-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            color: var(--muted2);
+            font-size: 12px;
+        }
+
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border-heavy);
+            transition: all 0.3s;
+        }
+
+        .step-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .step-dot.done {
+            background: var(--green);
+        }
+
+        .step-line {
+            width: 40px;
+            height: 2px;
+            background: var(--border-heavy);
+            transition: all 0.3s;
+        }
+
+        .step-line.done {
+            background: var(--green);
         }
 
         .hidden-admin {
@@ -1102,23 +1270,87 @@
         <div class="login-card">
             <img src="logotipo.jpeg" class="login-logo" alt="Transportes Verona">
             <h2 style="margin-bottom: 10px; font-family: 'Syne';">Acceso al Sistema</h2>
-            <p style="color: var(--muted); font-size: 14px; margin-bottom: 30px;">Identifícate para continuar</p>
 
-            <div class="login-form">
-                <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">Tipo de
-                    Usuario</label>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button type="button" class="role-btn active" id="btn-worker"
-                        onclick="setRole('trabajador')">Trabajador</button>
-                    <button type="button" class="role-btn" id="btn-admin" onclick="setRole('admin')">Soporte</button>
+            <!-- Indicador de pasos -->
+            <div class="step-indicator">
+                <div class="step-dot active" id="step-dot-1"></div>
+                <div class="step-line" id="step-line-1"></div>
+                <div class="step-dot" id="step-dot-2"></div>
+            </div>
+
+            <!-- PASO 1: Conectar Base de Datos -->
+            <div class="login-step active" id="login-step-1">
+                <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">
+                    Conecta tu base de datos para acceder al sistema
+                </p>
+
+                <div id="login-db-status" style="display:none;" class="login-status"></div>
+
+                <div class="login-form">
+                    <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">
+                        <i data-lucide="database"
+                            style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px;"></i>
+                        Supabase URL
+                    </label>
+                    <input type="text" id="login-sb-url" class="login-input" placeholder="https://xyz.supabase.co">
+
+                    <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">
+                        <i data-lucide="key"
+                            style="width:14px;height:14px;display:inline;vertical-align:-2px;margin-right:4px;"></i>
+                        Supabase Anon Key
+                    </label>
+                    <input type="password" id="login-sb-key" class="login-input" placeholder="eyJhbGciOiJIUzI1NiIs...">
+
+                    <button class="btn btn-primary" style="width: 100%; padding: 14px;" onclick="connectAndLoadPins()"
+                        id="btn-connect-db">
+                        <i data-lucide="plug" style="width:16px;height:16px;"></i>
+                        Conectar Base de Datos
+                    </button>
                 </div>
 
-                <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">Contraseña /
-                    PIN</label>
-                <input type="password" id="login-pin" class="login-input" placeholder="••••">
+                <div class="login-divider">Información</div>
+                <p style="color: var(--muted2); font-size: 12px; line-height: 1.6;">
+                    La conexión a la base de datos es necesaria para verificar tus credenciales y mantener los datos
+                    sincronizados.
+                </p>
+            </div>
 
-                <button class="btn btn-primary" style="width: 100%; padding: 14px;" onclick="doLogin()">Entrar al
-                    Dashboard</button>
+            <!-- PASO 2: Login con PIN -->
+            <div class="login-step" id="login-step-2">
+                <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">
+                    Base de datos conectada. Identifícate para continuar.
+                </p>
+
+                <div class="login-status connected" id="login-connected-msg">
+                    <i data-lucide="check-circle" style="width:18px;height:18px;flex-shrink:0;"></i>
+                    <span>Conectado a la base de datos — PINs actualizados</span>
+                </div>
+
+                <div class="login-form">
+                    <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">Tipo de
+                        Usuario</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button type="button" class="role-btn active" id="btn-worker"
+                            onclick="setRole('trabajador')">Trabajador</button>
+                        <button type="button" class="role-btn" id="btn-admin"
+                            onclick="setRole('admin')">Soporte</button>
+                    </div>
+
+                    <label style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block;">Contraseña /
+                        PIN</label>
+                    <input type="password" id="login-pin" class="login-input" placeholder="••••">
+
+                    <button class="btn btn-primary" style="width: 100%; padding: 14px;" onclick="doLogin()">
+                        <i data-lucide="log-in" style="width:16px;height:16px;"></i>
+                        Entrar al Dashboard
+                    </button>
+
+                    <button class="btn btn-ghost" style="width: 100%; padding: 12px; margin-top: 10px;"
+                        onclick="goBackToStep1()">
+                        <i data-lucide="arrow-left" style="width:14px;height:14px;"></i>
+                        Cambiar conexión
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1308,10 +1540,18 @@
                     <div class="stat-value" id="f-vencido">$0</div>
                 </div>
             </div>
+            <div id="bulk-facturas" class="bulk-actions">
+                <span id="bulk-facturas-count">0 seleccionados</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteSelected('facturas')">
+                    <i data-lucide="trash-2"></i> Eliminar seleccionados
+                </button>
+            </div>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
+                            <th class="select-col"><input type="checkbox" class="custom-checkbox"
+                                    onclick="toggleSelectAll('facturas', this)"></th>
                             <th>N° Factura</th>
                             <th>Cliente</th>
                             <th>Descripción</th>
@@ -1363,10 +1603,18 @@
                     <div class="stat-value" id="gc-otros">$0</div>
                 </div>
             </div>
+            <div id="bulk-gastos" class="bulk-actions">
+                <span id="bulk-gastos-count">0 seleccionados</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteSelected('gastos')">
+                    <i data-lucide="trash-2"></i> Eliminar seleccionados
+                </button>
+            </div>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
+                            <th class="select-col"><input type="checkbox" class="custom-checkbox"
+                                    onclick="toggleSelectAll('gastos', this)"></th>
                             <th>Concepto</th>
                             <th>Categoría</th>
                             <th>Proveedor</th>
@@ -1414,10 +1662,18 @@
                     <div class="stat-value" id="i-promedio">$0</div>
                 </div>
             </div>
+            <div id="bulk-ingresos" class="bulk-actions">
+                <span id="bulk-ingresos-count">0 seleccionados</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteSelected('ingresos')">
+                    <i data-lucide="trash-2"></i> Eliminar seleccionados
+                </button>
+            </div>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
+                            <th class="select-col"><input type="checkbox" class="custom-checkbox"
+                                    onclick="toggleSelectAll('ingresos', this)"></th>
                             <th>Concepto</th>
                             <th>Cliente</th>
                             <th>Vehículo</th>
@@ -1852,6 +2108,9 @@
                 <div class="modal-close" onclick="closeModal('modal-settings')"><i data-lucide="x"
                         style="width:18px;height:18px"></i></div>
             </div>
+            <div id="settings-db-status"
+                style="display:none; padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:15px; align-items:center; gap:10px;">
+            </div>
             <div style="padding:15px; background:var(--surface2); border-radius:12px; margin-bottom:15px;">
                 <p style="font-size:12px; color:var(--muted); line-height:1.5;">Configura la conexión con tu base de
                     datos para no perder tus datos al usar la página en Netlify.</p>
@@ -1874,9 +2133,94 @@
                     <input type="password" id="s-pin-admin" placeholder="Defecto: 1234">
                 </div>
             </div>
+
+            <!-- GESTIÓN DE BASE DE DATOS -->
+            <div id="admin-only-db" style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                    <i data-lucide="database" style="width:16px;height:16px;color:var(--accent)"></i>
+                    <label style="font-size:13px; font-weight:700; letter-spacing:.3px;">Gestión de Base de
+                        Datos</label>
+                </div>
+
+                <!-- Descargar Respaldo -->
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <button class="btn" style="width:100%; justify-content:flex-start; padding:12px 16px;"
+                        onclick="downloadBackup()">
+                        <i data-lucide="download" style="width:16px;height:16px;color:var(--green)"></i>
+                        <div style="text-align:left;">
+                            <div style="font-weight:600; font-size:13px;">Descargar Respaldo</div>
+                            <div style="font-size:11px; color:var(--muted); font-weight:400;">Exportar todos los datos
+                                como archivo JSON</div>
+                        </div>
+                    </button>
+
+                    <!-- Restaurar Respaldo -->
+                    <button class="btn" style="width:100%; justify-content:flex-start; padding:12px 16px;"
+                        onclick="document.getElementById('backup-file-input').click()">
+                        <i data-lucide="upload" style="width:16px;height:16px;color:var(--accent)"></i>
+                        <div style="text-align:left;">
+                            <div style="font-weight:600; font-size:13px;">Restaurar Respaldo</div>
+                            <div style="font-size:11px; color:var(--muted); font-weight:400;">Cargar datos desde un
+                                archivo de respaldo</div>
+                        </div>
+                    </button>
+                    <input type="file" id="backup-file-input" accept=".json" style="display:none"
+                        onchange="uploadBackup(this)">
+
+                    <!-- Limpiar Base de Datos -->
+                    <button class="btn btn-danger" style="width:100%; justify-content:flex-start; padding:12px 16px;"
+                        onclick="openModal('modal-wipe')">
+                        <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+                        <div style="text-align:left;">
+                            <div style="font-weight:600; font-size:13px;">Limpiar Base de Datos</div>
+                            <div style="font-size:11px; font-weight:400; opacity:0.8;">Eliminar TODOS los datos
+                                permanentemente</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Cerrar</button>
-                <button class="btn btn-primary" onclick="saveSettings()">Conectar y Guardar</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAR LIMPIEZA -->
+    <div class="modal-overlay" id="modal-wipe">
+        <div class="modal" style="max-width:420px; text-align:center;">
+            <div class="modal-header" style="justify-content:center; margin-bottom:5px;">
+                <div style="color:var(--red);"><i data-lucide="alert-octagon" style="width:44px;height:44px;"></i></div>
+            </div>
+            <h2 style="margin-bottom:8px; font-family:'Syne',sans-serif; font-size:18px; color:var(--red);">Limpiar Base
+                de Datos</h2>
+            <p style="font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.5;">
+                Esta acción eliminará <strong>TODOS</strong> los datos: facturas, gastos, ingresos, clientes, vehículos
+                y créditos. <br>Esta acción <strong>no se puede deshacer</strong>.
+            </p>
+            <div
+                style="background:var(--red-glow); border:1px solid rgba(220,38,38,.2); border-radius:10px; padding:12px; margin-bottom:20px; font-size:12px; color:var(--red); line-height:1.4;">
+                <i data-lucide="info" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>
+                Se recomienda descargar un respaldo antes de continuar.
+            </div>
+            <div style="text-align:left; margin-bottom:20px;">
+                <label style="font-size:13px; font-weight:600; margin-bottom:8px; display:block;">Ingresa el PIN de
+                    Soporte para confirmar</label>
+                <input type="password" id="wipe-confirm-pin" class="login-input" placeholder="PIN de Soporte"
+                    style="margin-bottom:0;">
+            </div>
+            <div style="display:grid; gap:10px;">
+                <button class="btn btn-danger"
+                    style="width:100%; padding:14px; background:var(--red); color:white; border:none;"
+                    onclick="confirmWipeDB()">
+                    <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+                    Confirmar Limpieza Total
+                </button>
+                <button class="btn btn-ghost" style="width:100%; padding:12px;"
+                    onclick="closeModal('modal-wipe'); document.getElementById('wipe-confirm-pin').value='';">
+                    Cancelar
+                </button>
             </div>
         </div>
     </div>
@@ -1890,7 +2234,8 @@
             currentYear: new Date().getFullYear(),
             supabase: null,
             user: { role: 'guest' },
-            security: { workerPin: '0000', adminPin: '1234' }
+            security: { workerPin: '0000', adminPin: '1234' },
+            updated_at: new Date().toISOString()
         };
         const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         const MONTHS_FULL = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -1898,13 +2243,134 @@
 
         // SECURITY & LOGIN
         let selectedRole = 'trabajador';
+        let dbConnectedForLogin = false; // Bandera: BD conectada para login
+
         function setRole(r) {
             selectedRole = r;
             document.getElementById('btn-worker').className = r === 'trabajador' ? 'role-btn active' : 'role-btn';
             document.getElementById('btn-admin').className = r === 'admin' ? 'role-btn active' : 'role-btn';
         }
 
+        // --- PASO 1: Conectar BD y cargar PINs ---
+        async function connectAndLoadPins() {
+            const url = document.getElementById('login-sb-url').value.trim();
+            const key = document.getElementById('login-sb-key').value.trim();
+            const statusEl = document.getElementById('login-db-status');
+            const btnConnect = document.getElementById('btn-connect-db');
+
+            if (!url || !key) {
+                showLoginStatus('Ingresa la URL y Anon Key de Supabase', 'error');
+                return;
+            }
+
+            // Mostrar estado conectando
+            showLoginStatus('Conectando a la base de datos...', 'connecting');
+            btnConnect.disabled = true;
+            btnConnect.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Conectando...';
+            lucide.createIcons();
+
+            try {
+                // Crear cliente Supabase temporal
+                const tempClient = window.supabase.createClient(url, key);
+
+                // Verificar conexión intentando leer datos
+                const { data, error } = await tempClient
+                    .from('app_data')
+                    .select('data, updated_at')
+                    .eq('id', 1)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                // Conexión exitosa! Guardar credenciales encriptadas
+                const urlObsc = CryptoJS.AES.encrypt(url, OBSC_KEY).toString();
+                const keyObsc = CryptoJS.AES.encrypt(key, OBSC_KEY).toString();
+                localStorage.setItem('sb-url', urlObsc);
+                localStorage.setItem('sb-key', keyObsc);
+
+                // Asignar el cliente al state
+                state.supabase = tempClient;
+
+                // Cargar datos y PINs desde la nube
+                if (data && data.data) {
+                    let finalData = data.data;
+                    if (typeof data.data === 'string') {
+                        finalData = decryptData(data.data);
+                    }
+                    if (finalData) {
+                        Object.assign(state, finalData);
+                        if (data.updated_at) state.updated_at = data.updated_at;
+                        state.supabase = tempClient; // Re-asignar porque Object.assign lo sobreescribió
+                        console.log('Datos y PINs cargados desde Supabase en login');
+                    }
+                }
+
+                // Marcar que la BD está conectada
+                dbConnectedForLogin = true;
+
+                // Avanzar al paso 2
+                showLoginStatus('Conexión exitosa — PINs cargados desde la nube', 'connected');
+                setTimeout(() => {
+                    goToLoginStep2();
+                }, 800);
+
+            } catch (err) {
+                console.error('Error al conectar con Supabase:', err);
+                showLoginStatus('Error de conexión. Verifica la URL y Key.', 'error');
+                btnConnect.disabled = false;
+                btnConnect.innerHTML = '<i data-lucide="plug" style="width:16px;height:16px;"></i> Reintentar Conexión';
+                lucide.createIcons();
+            }
+        }
+
+        function showLoginStatus(msg, type) {
+            const el = document.getElementById('login-db-status');
+            el.style.display = 'flex';
+            el.className = 'login-status ' + type;
+            const icons = {
+                connecting: 'loader',
+                connected: 'check-circle',
+                error: 'x-circle'
+            };
+            el.innerHTML = `<i data-lucide="${icons[type] || 'info'}" style="width:18px;height:18px;flex-shrink:0;${type === 'connecting' ? 'animation:spin 1s linear infinite;' : ''}"></i><span>${msg}</span>`;
+            lucide.createIcons();
+        }
+
+        function goToLoginStep2() {
+            // Actualizar indicador de pasos
+            document.getElementById('step-dot-1').className = 'step-dot done';
+            document.getElementById('step-line-1').className = 'step-line done';
+            document.getElementById('step-dot-2').className = 'step-dot active';
+
+            // Cambiar de paso
+            document.getElementById('login-step-1').classList.remove('active');
+            document.getElementById('login-step-2').classList.add('active');
+            lucide.createIcons();
+
+            // Focus en el input de PIN
+            setTimeout(() => document.getElementById('login-pin').focus(), 300);
+        }
+
+        function goBackToStep1() {
+            document.getElementById('step-dot-1').className = 'step-dot active';
+            document.getElementById('step-line-1').className = 'step-line';
+            document.getElementById('step-dot-2').className = 'step-dot';
+
+            document.getElementById('login-step-2').classList.remove('active');
+            document.getElementById('login-step-1').classList.add('active');
+
+            dbConnectedForLogin = false;
+            state.supabase = null;
+            lucide.createIcons();
+        }
+
+        // --- PASO 2: Login con PIN (ahora valida contra PINs de la BD) ---
         function doLogin() {
+            if (!dbConnectedForLogin) {
+                toast('Primero conecta la base de datos', 'error');
+                return;
+            }
+
             const pin = document.getElementById('login-pin').value;
             const targetPin = selectedRole === 'admin' ? state.security.adminPin : state.security.workerPin;
 
@@ -1913,25 +2379,118 @@
                 localStorage.setItem('tv_session', JSON.stringify({ role: selectedRole, expiry: Date.now() + 86400000 }));
                 document.getElementById('login-overlay').style.display = 'none';
                 applyPermissions();
+                loadData(); // Cargar facturas desde tabla dedicada
                 toast('Sesión iniciada como ' + (selectedRole === 'admin' ? 'Soporte' : 'Trabajador'));
             } else {
                 toast('PIN incorrecto', 'error');
+                document.getElementById('login-pin').value = '';
+                document.getElementById('login-pin').focus();
             }
         }
 
         function checkSession() {
             const session = JSON.parse(localStorage.getItem('tv_session'));
             if (session && session.expiry > Date.now()) {
+                // Hay sesión guardada, pero ahora necesitamos BD conectada
+                // Intentar auto-conectar con credenciales guardadas
+                autoConnectAndResume(session);
+            }
+        }
+
+        async function autoConnectAndResume(session) {
+            let url = localStorage.getItem('sb-url');
+            let key = localStorage.getItem('sb-key');
+
+            if (!url || !key) return; // No hay credenciales guardadas, mostrar login normal
+
+            try {
+                if (url.startsWith('U2FsdGVkX1')) {
+                    url = CryptoJS.AES.decrypt(url, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                }
+                if (key.startsWith('U2FsdGVkX1')) {
+                    key = CryptoJS.AES.decrypt(key, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                }
+            } catch (e) { return; }
+
+            if (!url || !key) return;
+
+            try {
+                const tempClient = window.supabase.createClient(url, key);
+                const { data, error } = await tempClient
+                    .from('app_data')
+                    .select('data, updated_at')
+                    .eq('id', 1)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                state.supabase = tempClient;
+                dbConnectedForLogin = true;
+
+                if (data && data.data) {
+                    let finalData = data.data;
+                    if (typeof data.data === 'string') {
+                        finalData = decryptData(data.data);
+                    }
+                    if (finalData) {
+                        Object.assign(state, finalData);
+                        if (data.updated_at) state.updated_at = data.updated_at;
+                        state.supabase = tempClient;
+                    }
+                }
+
+                // Verificar que el PIN de la sesión sigue vigente
                 state.user.role = session.role;
                 document.getElementById('login-overlay').style.display = 'none';
                 applyPermissions();
+                toast('Sesión restaurada — Datos sincronizados', 'info');
+
+                // Cargar facturas desde tabla dedicada
+                if (state.supabase) await loadFacturasFromDB();
+
+            } catch (err) {
+                console.warn('No se pudo auto-conectar, mostrando login normal:', err);
+                // Mostrar login normal con credenciales pre-rellenadas
+                prefillLoginCredentials();
+            }
+        }
+
+        function prefillLoginCredentials() {
+            let url = localStorage.getItem('sb-url');
+            let key = localStorage.getItem('sb-key');
+
+            try {
+                if (url && url.startsWith('U2FsdGVkX1')) {
+                    url = CryptoJS.AES.decrypt(url, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                }
+                if (key && key.startsWith('U2FsdGVkX1')) {
+                    key = CryptoJS.AES.decrypt(key, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                }
+            } catch (e) { return; }
+
+            if (url) document.getElementById('login-sb-url').value = url;
+            if (key) document.getElementById('login-sb-key').value = key;
+        }
+
+        let inactivityTimer;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            if (state.user.role !== 'guest') {
+                inactivityTimer = setTimeout(logout, 15 * 60 * 1000); // 15 minutos
             }
         }
 
         function logout() {
             localStorage.removeItem('tv_session');
-            location.reload();
+            dbConnectedForLogin = false;
+            toast('Sesión cerrada', 'info');
+            setTimeout(() => location.reload(), 1500);
         }
+
+        // Monitorear actividad
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(name => {
+            document.addEventListener(name, resetInactivityTimer, true);
+        });
 
         function applyPermissions() {
             const isAdmin = state.user.role === 'admin';
@@ -1942,13 +2501,31 @@
             const adminSection = document.getElementById('admin-only-settings');
             if (adminSection) adminSection.style.display = isAdmin ? 'grid' : 'none';
 
+            const dbSection = document.getElementById('admin-only-db');
+            if (dbSection) dbSection.style.display = isAdmin ? 'block' : 'none';
+
             refreshAll();
         }
 
         // SUPABASE INIT
+        const OBSC_KEY = 'trans-sec-v1';
         function initSupabase() {
-            const url = localStorage.getItem('sb-url');
-            const key = localStorage.getItem('sb-key');
+            // Si ya tenemos el cliente, no recrear
+            if (state.supabase) return true;
+
+            let url = localStorage.getItem('sb-url');
+            let key = localStorage.getItem('sb-key');
+
+            // Intentar desofuscar si parecen codificados
+            try {
+                if (url && url.startsWith('U2FsdGVkX1')) {
+                    url = CryptoJS.AES.decrypt(url, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                }
+                if (key && key.startsWith('U2FsdGVkX1')) {
+                    key = CryptoJS.AES.decrypt(key, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                }
+            } catch (e) { console.error("Error al desofuscar llaves"); }
+
             if (url && key && window.supabase) {
                 state.supabase = window.supabase.createClient(url, key);
                 return true;
@@ -1971,8 +2548,11 @@
             if (wPin) state.security.workerPin = wPin;
             if (aPin) state.security.adminPin = aPin;
 
-            localStorage.setItem('sb-url', url);
-            localStorage.setItem('sb-key', key);
+            const urlObsc = CryptoJS.AES.encrypt(url, OBSC_KEY).toString();
+            const keyObsc = CryptoJS.AES.encrypt(key, OBSC_KEY).toString();
+
+            localStorage.setItem('sb-url', urlObsc);
+            localStorage.setItem('sb-key', keyObsc);
 
             if (initSupabase()) {
                 toast('Intentando conectar...');
@@ -1995,8 +2575,27 @@
             }
         }
 
+        // --- SEGURIDAD: CIFRADO Y SINCRONIZACIÓN ---
+        function encryptData(data) {
+            const secret = state.security.adminPin || '1234';
+            return CryptoJS.AES.encrypt(JSON.stringify(data), secret).toString();
+        }
+
+        function decryptData(cipherText) {
+            try {
+                const secret = state.security.adminPin || '1234';
+                const bytes = CryptoJS.AES.decrypt(cipherText, secret);
+                const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                return JSON.parse(decrypted);
+            } catch (e) {
+                console.error("Error al descifrar datos:", e);
+                return null;
+            }
+        }
+
         async function syncToDB() {
-            saveToLocal(); // Siempre guardar en local como respaldo
+            state.updated_at = new Date().toISOString();
+            saveToLocal();
             const syncIcon = document.getElementById('sync-indicator');
             if (syncIcon) syncIcon.style.opacity = '1';
 
@@ -2006,33 +2605,72 @@
             }
 
             try {
+                const { data: remote, error: fetchErr } = await state.supabase
+                    .from('app_data').select('updated_at').eq('id', 1).single();
+
+                if (remote && remote.updated_at && new Date(remote.updated_at) > new Date(state.updated_at)) {
+                    openModal('modal-conflict');
+                    toast('Conflicto detectado', 'warning');
+                    return;
+                }
+
                 const dataToSave = { ...state, supabase: null };
+                const encrypted = encryptData(dataToSave);
+
                 const { error } = await state.supabase
                     .from('app_data')
-                    .upsert({ id: 1, data: dataToSave, updated_at: new Date().toISOString() });
+                    .upsert({ id: 1, data: encrypted, updated_at: state.updated_at });
 
                 if (error) throw error;
-                if (syncIcon) {
-                    syncIcon.style.color = 'var(--green)';
-                    setTimeout(() => syncIcon.style.opacity = '0.5', 2000);
-                }
+                if (syncIcon) syncIcon.style.color = 'var(--green)';
+                setTimeout(() => { if (syncIcon) syncIcon.style.opacity = '0.3'; }, 2000);
             } catch (err) {
                 console.error("DB Sync Error:", err);
                 if (syncIcon) syncIcon.style.color = 'var(--red)';
+                toast('Error de sincronización con la nube', 'error');
+            }
+        }
+
+        async function resolveConflict(choice) {
+            closeModal('modal-conflict');
+            if (choice === 'cloud') {
+                await loadData(true);
+            } else {
+                state.updated_at = new Date().toISOString();
+                const encrypted = encryptData({ ...state, supabase: null });
+                await state.supabase.from('app_data').upsert({ id: 1, data: encrypted, updated_at: state.updated_at });
+                toast('Datos locales guardados en la nube');
             }
         }
 
         function saveToLocal() {
-            const data = { ...state, supabase: null }; // No guardamos la instancia de cliente
+            const data = { ...state, supabase: null };
+            const encrypted = encryptData(data);
+            localStorage.setItem('transfinanzas_data_enc', encrypted);
+            // También mantenemos la versión plana por ahora para evitar pérdida si falla el cifrado, 
+            // pero en producción se debería eliminar.
             localStorage.setItem('transfinanzas_data', JSON.stringify(data));
         }
 
-        async function loadData() {
-            // 1. Cargar de LocalStorage primero para rapidez
-            const local = localStorage.getItem('transfinanzas_data');
-            if (local) {
+        async function loadData(forceNube = false) {
+            // Si la BD ya fue conectada durante el login, los datos ya están cargados
+            // Solo necesitamos refrescar la UI y cargar facturas adicionales
+            if (dbConnectedForLogin && !forceNube) {
+                refreshAll();
+                if (state.supabase) await loadFacturasFromDB();
+                return;
+            }
+
+            // 1. Cargar de LocalStorage (Cifrado preferido) — solo como fallback
+            const localEnc = localStorage.getItem('transfinanzas_data_enc');
+            const localPlain = localStorage.getItem('transfinanzas_data');
+
+            if (localEnc && !forceNube) {
+                const decrypted = decryptData(localEnc);
+                if (decrypted) Object.assign(state, decrypted);
+            } else if (localPlain && !forceNube) {
                 try {
-                    const parsed = JSON.parse(local);
+                    const parsed = JSON.parse(localPlain);
                     Object.assign(state, parsed);
                 } catch (e) { console.error("Error parsing local info", e); }
             }
@@ -2050,34 +2688,99 @@
                 try {
                     const { data, error } = await state.supabase
                         .from('app_data')
-                        .select('data')
+                        .select('data, updated_at')
                         .eq('id', 1)
                         .single();
 
                     if (error) {
                         if (error.code === 'PGRST116') {
                             console.log("No remote data found, first run?");
-                            await syncToDB(); // Crear registro remoto inicial
+                            await syncToDB();
                         } else {
                             throw error;
                         }
                     }
 
                     if (data && data.data) {
-                        // Mezclar datos: Priorizamos los más recientes comparando si tuviéramos un timestamp,
-                        // por ahora, si hay datos en Supabase, reemplazamos el estado local.
-                        Object.assign(state, data.data);
-                        console.log("Datos cargados desde Supabase");
-                        if (syncIcon) syncIcon.style.color = 'var(--green)';
-                        toast('Datos sincronizados con Supabase ✓', 'info');
+                        let finalData = data.data;
+                        // Si es un string, está cifrado
+                        if (typeof data.data === 'string') {
+                            finalData = decryptData(data.data);
+                        }
+
+                        if (finalData) {
+                            const supaRef = state.supabase; // Preservar referencia
+                            Object.assign(state, finalData);
+                            state.supabase = supaRef; // Restaurar
+                            if (data.updated_at) state.updated_at = data.updated_at;
+                            console.log("Datos cargados y descifrados desde Supabase");
+                            if (syncIcon) syncIcon.style.color = 'var(--green)';
+                        } else {
+                            toast('Error al descifrar datos (¿PIN incorrecto?)', 'error');
+                            if (syncIcon) syncIcon.style.color = 'var(--red)';
+                        }
                     }
                 } catch (err) {
                     console.warn("No se pudo cargar de Supabase, usando local.", err);
+                    const syncIcon = document.getElementById('sync-indicator');
                     if (syncIcon) syncIcon.style.color = 'var(--red)';
-                    toast('Error al sincronizar con Supabase - Usando copia local', 'error');
+                    if (!forceNube) toast('Error al sincronizar - Usando copia local', 'error');
                 }
             }
             refreshAll();
+            // Cargar facturas desde la tabla dedicada en Supabase
+            if (state.supabase) await loadFacturasFromDB();
+        }
+
+
+        // --- FUNCIONES DE ELIMINACIÓN MÚLTIPLE ---
+        function toggleSelectAll(listName, masterCheckbox) {
+            const pageId = 'page-' + listName;
+            const checkboxes = document.querySelectorAll(`#${pageId} .item-checkbox`);
+            checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+            updateBulkUI(listName);
+        }
+
+        function updateBulkUI(listName) {
+            const pageId = 'page-' + listName;
+            const checkboxes = document.querySelectorAll(`#${pageId} .item-checkbox:checked`);
+            const count = checkboxes.length;
+            const bulkActions = document.getElementById('bulk-' + listName);
+            const countEl = document.getElementById('bulk-' + listName + '-count');
+
+            if (bulkActions) {
+                if (count > 0) {
+                    bulkActions.classList.add('active');
+                    if (countEl) countEl.innerText = `${count} seleccionado${count > 1 ? 's' : ''}`;
+                } else {
+                    bulkActions.classList.remove('active');
+                }
+            }
+        }
+
+        async function deleteSelected(listName) {
+            const pageId = 'page-' + listName;
+            const checkboxes = document.querySelectorAll(`#${pageId} .item-checkbox:checked`);
+            if (checkboxes.length === 0) return;
+
+            if (!confirm(`¿Eliminar ${checkboxes.length} registros seleccionados?`)) return;
+
+            const idsToDelete = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
+
+            // Procesar eliminaciones vinculadas si es facturas
+            if (listName === 'facturas') {
+                state.ingresos = state.ingresos.filter(i => !idsToDelete.includes(i.facturaId));
+            }
+
+            state[listName] = state[listName].filter(item => !idsToDelete.includes(item.id));
+
+            // Resetear checkbox maestro
+            const master = document.querySelector(`#${pageId} .select-col input`);
+            if (master) master.checked = false;
+
+            toast(`${checkboxes.length} registros eliminados`);
+            refreshAll();
+            await syncToDB();
         }
 
         function refreshAll() {
@@ -2160,10 +2863,38 @@
         function openModal(id) {
             setTodayDates();
             if (id === 'modal-settings') {
+                // Pre-rellenar PINs
                 document.getElementById('s-pin-worker').value = state.security.workerPin;
                 document.getElementById('s-pin-admin').value = state.security.adminPin;
+
+                // Pre-rellenar credenciales de BD desofuscadas
+                let url = localStorage.getItem('sb-url');
+                let key = localStorage.getItem('sb-key');
+                try {
+                    if (url && url.startsWith('U2FsdGVkX1')) url = CryptoJS.AES.decrypt(url, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                    if (key && key.startsWith('U2FsdGVkX1')) key = CryptoJS.AES.decrypt(key, OBSC_KEY).toString(CryptoJS.enc.Utf8);
+                } catch (e) { }
+                if (url) document.getElementById('s-url').value = url;
+                if (key) document.getElementById('s-key').value = key;
+
+                // Mostrar estado de conexión
+                const statusEl = document.getElementById('settings-db-status');
+                if (state.supabase) {
+                    statusEl.style.display = 'flex';
+                    statusEl.style.background = 'var(--green-glow)';
+                    statusEl.style.border = '1px solid rgba(5,150,105,.2)';
+                    statusEl.style.color = 'var(--green)';
+                    statusEl.innerHTML = '<i data-lucide="check-circle" style="width:16px;height:16px;flex-shrink:0;"></i><span>Conectado a la base de datos</span>';
+                } else {
+                    statusEl.style.display = 'flex';
+                    statusEl.style.background = 'var(--yellow-glow)';
+                    statusEl.style.border = '1px solid rgba(217,119,6,.2)';
+                    statusEl.style.color = 'var(--yellow)';
+                    statusEl.innerHTML = '<i data-lucide="alert-triangle" style="width:16px;height:16px;flex-shrink:0;"></i><span>Sin conexión a base de datos</span>';
+                }
             }
             document.getElementById(id).classList.add('open');
+            lucide.createIcons();
         }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         function setTodayDates() {
@@ -2176,9 +2907,15 @@
         async function deleteRecord(list, id) {
             if (!confirm('¿Eliminar este registro?')) return;
 
-            // Si eliminamos una factura, también eliminar su ingreso vinculado
             if (list === 'facturas') {
                 state.ingresos = state.ingresos.filter(i => i.facturaId !== id);
+                // Si viene de Supabase, borrar de la tabla facturas
+                const f = state.facturas.find(f => f.id === id);
+                if (state.supabase && f && f._fromDB) {
+                    try {
+                        await state.supabase.from('facturas').delete().eq('id', id);
+                    } catch (err) { console.error('Error eliminando factura en DB:', err); }
+                }
             }
 
             state[list] = state[list].filter(r => r.id !== id);
@@ -2230,12 +2967,48 @@
             });
         }
 
-        // FACTURAS
-        function saveFactura() {
-            const numero = document.getElementById('f-numero').value.trim() || ('FAC-' + Date.now().toString().slice(-4));
+        // FACTURAS — Módulo conectado a tabla `facturas` en Supabase
+        async function loadFacturasFromDB() {
+            if (!state.supabase) return;
+            try {
+                const { data, error } = await state.supabase
+                    .from('facturas')
+                    .select('*')
+                    .order('fecha_emision', { ascending: false });
+                if (error) throw error;
+                // Mapear columnas de Supabase al formato que usa la app
+                state.facturas = (data || []).map(f => ({
+                    id: f.id,
+                    folio_fiscal: f.folio_fiscal,
+                    numero: f.folio_fiscal ? f.folio_fiscal.slice(0, 8).toUpperCase() : ('FAC-' + f.id.slice(0, 4)),
+                    clienteId: '',
+                    clienteNombre: f.nombre_receptor || '—',
+                    descripcion: f.nombre_receptor || 'Servicio de transporte',
+                    fecha: f.fecha_emision ? f.fecha_emision.split('T')[0] : '',
+                    vencimiento: '',
+                    subtotal: parseFloat(f.subtotal || 0).toFixed(2),
+                    iva: parseFloat(f.iva || 0).toFixed(2),
+                    retIva: parseFloat(f.retencion_iva || 0).toFixed(2),
+                    retIsr: parseFloat(f.retencion_isr || 0).toFixed(2),
+                    monto: parseFloat(f.total || 0).toFixed(2),
+                    estado: f.estado_app || 'pendiente',
+                    notas: `RFC Receptor: ${f.rfc_receptor || ''}`,
+                    vehiculo: 'general',
+                    _fromDB: true  // Marca para saber que viene de la tabla facturas
+                }));
+                refreshFacturas();
+                refreshDashboard();
+            } catch (err) {
+                console.error('Error cargando facturas desde DB:', err);
+                toast('Error al cargar facturas desde la nube', 'error');
+            }
+        }
+
+        async function saveFactura() {
+            const numero = clean(document.getElementById('f-numero').value.trim()) || ('FAC-' + Date.now().toString().slice(-4));
             const clienteId = document.getElementById('f-cliente').value;
             const clienteNombre = clienteId ? state.clientes.find(c => c.id === clienteId)?.nombre : '—';
-            const descripcion = document.getElementById('f-descripcion').value.trim();
+            const descripcion = clean(document.getElementById('f-descripcion').value.trim());
             const fecha = document.getElementById('f-fecha').value;
             const vencimiento = document.getElementById('f-vencimiento').value;
             const montoBase = parseFloat(document.getElementById('f-monto').value) || 0;
@@ -2249,33 +3022,56 @@
             const montoTotal = (montoBase + ivaVal - retIvaVal - retIsrVal).toFixed(2);
 
             const estado = document.getElementById('f-estado').value;
-            const notas = document.getElementById('f-notas').value.trim();
+            const notas = clean(document.getElementById('f-notas').value.trim());
             const vehiculo = document.getElementById('f-vehiculo-sel').value;
             if (!descripcion || montoBase <= 0) { toast('Completa descripción y monto', 'error'); return; }
-            const fId = Date.now().toString();
-            state.facturas.push({
-                id: fId,
-                numero,
-                clienteId,
-                clienteNombre,
-                descripcion,
-                fecha,
-                vencimiento,
-                subtotal: montoBase.toFixed(2),
-                iva: ivaVal.toFixed(2),
-                retIva: retIvaVal.toFixed(2),
-                retIsr: retIsrVal.toFixed(2),
-                monto: montoTotal,
-                estado,
-                notas,
-                vehiculo
-            });
-            syncFacturaToIngreso(fId);
+
+            // Si Supabase está conectado, guardar en la tabla facturas
+            if (state.supabase) {
+                try {
+                    const { data, error } = await state.supabase.from('facturas').insert({
+                        rfc_emisor: 'VELR660507HB3',
+                        nombre_emisor: 'JOSE REGINO VERONA LOPEZ',
+                        rfc_receptor: '',
+                        nombre_receptor: clienteNombre,
+                        fecha_emision: fecha ? fecha + 'T00:00:00' : new Date().toISOString(),
+                        efecto: 'Ingreso',
+                        estado: 'Vigente',
+                        estado_app: estado,
+                        total: parseFloat(montoTotal),
+                        subtotal: montoBase,
+                        iva: ivaVal,
+                        retencion_iva: retIvaVal,
+                        retencion_isr: retIsrVal
+                    }).select().single();
+                    if (error) throw error;
+                    toast('Factura guardada en la nube ✓');
+                    await loadFacturasFromDB();
+                    // Sincronizar ingreso si aplica
+                    const fLocal = state.facturas.find(f => f.id === data.id);
+                    if (fLocal) syncFacturaToIngreso(fLocal.id);
+                } catch (err) {
+                    console.error('Error guardando factura en DB:', err);
+                    toast('Error al guardar factura en la nube', 'error');
+                    return;
+                }
+            } else {
+                // Sin Supabase: guardar localmente como antes
+                const fId = Date.now().toString();
+                state.facturas.push({
+                    id: fId, numero, clienteId, clienteNombre, descripcion, fecha, vencimiento,
+                    subtotal: montoBase.toFixed(2), iva: ivaVal.toFixed(2),
+                    retIva: retIvaVal.toFixed(2), retIsr: retIsrVal.toFixed(2),
+                    monto: montoTotal, estado, notas, vehiculo
+                });
+                syncFacturaToIngreso(fId);
+                syncToDB();
+            }
+
             closeModal('modal-factura');
             clearForm(['f-numero', 'f-descripcion', 'f-monto', 'f-notas', 'f-vencimiento']);
             document.getElementById('f-fecha').value = '';
-            refreshFacturas(); refreshIngresos(); refreshDashboard(); toast('Factura guardada');
-            syncToDB();
+            refreshFacturas(); refreshIngresos(); refreshDashboard();
         }
 
         function filterFacturas(type, btn) {
@@ -2297,8 +3093,9 @@
 
         function renderFacturasTable(list) {
             const tb = document.getElementById('facturasTable');
-            if (!list.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">🧾</div><p>Sin resultados.</p></div></td></tr>'; return; }
+            if (!list.length) { tb.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="icon">🧾</div><p>Sin resultados.</p></div></td></tr>'; return; }
             tb.innerHTML = list.slice().reverse().map(f => `<tr>
+    <td class="select-col"><input type="checkbox" class="custom-checkbox item-checkbox" data-id="${f.id}" onchange="updateBulkUI('facturas')"></td>
     <td><strong>${f.numero}</strong></td><td>${f.clienteNombre || '—'}</td><td>${f.descripcion}</td>
     <td>${f.fecha || '—'}</td><td>${f.vencimiento || '—'}</td>
     <td><strong>${fmt(f.monto)}</strong></td><td>${badgeEstado(f.estado)}</td>
@@ -2306,6 +3103,7 @@
       <button class="btn btn-ghost" style="font-size:11px;padding:4px 9px;" onclick="toggleEstado('${f.id}')">Cambiar estado</button>
       <button class="btn btn-danger" style="font-size:11px;padding:4px 9px;" onclick="deleteRecord('facturas','${f.id}')"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button>
     </td></tr>`).join('');
+            updateBulkUI('facturas');
         }
 
         function badgeEstado(e) {
@@ -2314,18 +3112,23 @@
             return `<span class="badge ${m[e] || 'badge-blue'}">${l[e] || e}</span>`;
         }
 
-        function toggleEstado(id) {
+        async function toggleEstado(id) {
             const f = state.facturas.find(f => f.id === id); if (!f) return;
             const order = ['pendiente', 'pagada', 'vencida'];
             f.estado = order[(order.indexOf(f.estado) + 1) % order.length];
             syncFacturaToIngreso(id);
             refreshFacturas(); refreshIngresos(); refreshDashboard(); toast('Estado → ' + f.estado);
+            if (state.supabase && f._fromDB) {
+                try {
+                    await state.supabase.from('facturas').update({ estado_app: f.estado }).eq('id', id);
+                } catch (err) { console.error('Error actualizando estado en DB:', err); }
+            }
             syncToDB();
         }
 
         // GASTOS
         function saveGasto() {
-            const concepto = document.getElementById('g-concepto').value.trim();
+            const concepto = clean(document.getElementById('g-concepto').value.trim());
             const categoria = document.getElementById('g-categoria').value;
             const fecha = document.getElementById('g-fecha').value;
             const montoBase = parseFloat(document.getElementById('g-monto').value) || 0;
@@ -2336,9 +3139,9 @@
             const retIvaVal = montoBase * (retIvaPct / 100);
             const montoTotal = (montoBase + ivaVal - retIvaVal).toFixed(2);
 
-            const proveedor = document.getElementById('g-proveedor').value.trim();
+            const proveedor = clean(document.getElementById('g-proveedor').value.trim());
             const vehiculo = document.getElementById('g-vehiculo').value;
-            const notas = document.getElementById('g-notas').value.trim();
+            const notas = clean(document.getElementById('g-notas').value.trim());
             if (!concepto || montoBase <= 0) { toast('Completa concepto y monto', 'error'); return; }
             state.gastos.push({
                 id: Date.now().toString(),
@@ -2370,16 +3173,19 @@
             document.getElementById('gc-sueldos').textContent = fmt(totals.sueldos);
             document.getElementById('gc-otros').textContent = fmt(totals.otros);
             const tb = document.getElementById('gastosTable');
-            if (!state.gastos.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon" data-lucide="trending-down"></div><p>Sin gastos registrados.</p></div></td></tr>'; lucide.createIcons(); return; }
+            if (!state.gastos.length) { tb.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="icon" data-lucide="trending-down"></div><p>Sin gastos registrados.</p></div></td></tr>'; lucide.createIcons(); return; }
             tb.innerHTML = state.gastos.slice().reverse().map(g => {
                 const veh = state.vehiculos.find(v => v.id === g.vehiculo);
-                return `<tr><td><strong>${g.concepto}</strong></td>
+                return `<tr>
+    <td class="select-col"><input type="checkbox" class="custom-checkbox item-checkbox" data-id="${g.id}" onchange="updateBulkUI('gastos')"></td>
+    <td><strong>${g.concepto}</strong></td>
     <td><span class="expense-cat-pill cat-${g.categoria}">${catIcon(g.categoria)} ${g.categoria}</span></td>
     <td>${g.proveedor || '—'}</td><td>${veh ? veh.alias : (g.vehiculo === 'general' ? 'General' : '—')}</td>
     <td>${g.fecha || '—'}</td><td style="color:var(--red)"><strong>-${fmt(g.monto)}</strong></td>
     <td style="font-size:12px;color:var(--muted)">${g.notas || '—'}</td>
     <td><button class="btn btn-danger" style="font-size:11px;padding:4px 9px;" onclick="deleteRecord('gastos','${g.id}')"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button></td></tr>`;
             }).join('');
+            updateBulkUI('gastos');
         }
 
         function catIcon(c) {
@@ -2397,14 +3203,14 @@
 
         // INGRESOS
         function saveIngreso() {
-            const concepto = document.getElementById('i-concepto').value.trim();
+            const concepto = clean(document.getElementById('i-concepto').value.trim());
             const clienteId = document.getElementById('i-cliente').value;
             const clienteNombre = clienteId ? state.clientes.find(c => c.id === clienteId)?.nombre : '—';
             const fecha = document.getElementById('i-fecha').value;
             const monto = parseFloat(document.getElementById('i-monto').value) || 0;
             const metodo = document.getElementById('i-metodo').value;
             const vehiculo = document.getElementById('i-vehiculo').value;
-            const notas = document.getElementById('i-notas').value.trim();
+            const notas = clean(document.getElementById('i-notas').value.trim());
             const facturado = document.getElementById('i-facturado').value;
 
             if (!concepto || monto <= 0) { toast('Completa concepto y monto', 'error'); return; }
@@ -2440,16 +3246,19 @@
             document.getElementById('i-servicios').textContent = mes.length;
             document.getElementById('i-promedio').textContent = fmt(prom);
             const tb = document.getElementById('ingresosTable');
-            if (!state.ingresos.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon" data-lucide="trending-up"></div><p>Sin ingresos registrados.</p></div></td></tr>'; lucide.createIcons(); return; }
+            if (!state.ingresos.length) { tb.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="icon" data-lucide="trending-up"></div><p>Sin ingresos registrados.</p></div></td></tr>'; lucide.createIcons(); return; }
             tb.innerHTML = state.ingresos.slice().reverse().map(i => {
                 const veh = state.vehiculos.find(v => v.id === i.vehiculo);
-                return `<tr><td><strong>${i.concepto}</strong></td><td>${i.clienteNombre || '—'}</td>
+                return `<tr>
+    <td class="select-col"><input type="checkbox" class="custom-checkbox item-checkbox" data-id="${i.id}" onchange="updateBulkUI('ingresos')"></td>
+    <td><strong>${i.concepto}</strong></td><td>${i.clienteNombre || '—'}</td>
     <td>${veh ? veh.alias : '—'}</td><td>${i.fecha || '—'}</td>
     <td style="color:var(--green)"><strong>+${fmt(i.monto)}</strong></td>
     <td><span class="badge badge-blue">${i.metodo}</span></td>
     <td style="font-size:12px;color:var(--muted)">${i.notas || '—'}</td>
     <td><button class="btn btn-danger" style="font-size:11px;padding:4px 9px;" onclick="deleteRecord('ingresos','${i.id}')"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button></td></tr>`;
             }).join('');
+            updateBulkUI('ingresos');
         }
 
         // CLIENTES
@@ -2712,8 +3521,167 @@
   </div>`;
         }
 
-        // INIT
-        loadData();
+        // ===== GESTIÓN DE BASE DE DATOS =====
+
+        function downloadBackup() {
+            try {
+                const backupData = {
+                    _backup_info: {
+                        app: 'Transportes Verona - Sistema Financiero',
+                        fecha: new Date().toISOString(),
+                        version: '1.0'
+                    },
+                    facturas: state.facturas,
+                    gastos: state.gastos,
+                    ingresos: state.ingresos,
+                    clientes: state.clientes,
+                    vehiculos: state.vehiculos,
+                    creditos: state.creditos,
+                    security: state.security
+                };
+
+                const json = JSON.stringify(backupData, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                const fecha = new Date().toISOString().split('T')[0];
+                const hora = new Date().toTimeString().split(' ')[0].replace(/:/g, '-');
+                a.href = url;
+                a.download = `backup_transportes_verona_${fecha}_${hora}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                toast('Respaldo descargado exitosamente');
+            } catch (err) {
+                console.error('Error al descargar respaldo:', err);
+                toast('Error al crear respaldo', 'error');
+            }
+        }
+
+        function uploadBackup(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // Validar que sea un backup válido
+                    const requiredKeys = ['facturas', 'gastos', 'ingresos', 'clientes'];
+                    const hasKeys = requiredKeys.some(k => Array.isArray(data[k]));
+
+                    if (!hasKeys) {
+                        toast('El archivo no es un respaldo válido', 'error');
+                        input.value = '';
+                        return;
+                    }
+
+                    if (!confirm('¿Estás seguro de restaurar este respaldo? Los datos actuales serán reemplazados.')) {
+                        input.value = '';
+                        return;
+                    }
+
+                    // Restaurar datos
+                    const supaRef = state.supabase;
+                    if (data.facturas) state.facturas = data.facturas;
+                    if (data.gastos) state.gastos = data.gastos;
+                    if (data.ingresos) state.ingresos = data.ingresos;
+                    if (data.clientes) state.clientes = data.clientes;
+                    if (data.vehiculos) state.vehiculos = data.vehiculos;
+                    if (data.creditos) state.creditos = data.creditos;
+                    if (data.security) state.security = data.security;
+                    state.supabase = supaRef;
+
+                    // Sincronizar a local y nube
+                    await syncToDB();
+
+                    // Si hay facturas y Supabase está conectado, sincronizar tabla de facturas
+                    if (state.supabase && state.facturas.length > 0) {
+                        for (const f of state.facturas) {
+                            await state.supabase.from('facturas').upsert({
+                                id: f.id,
+                                numero: f.numero,
+                                cliente_nombre: f.clienteNombre,
+                                monto: f.monto,
+                                estado: f.estado,
+                                fecha: f.fecha,
+                                vencimiento: f.vencimiento,
+                                concepto: f.concepto,
+                                subtotal: f.subtotal,
+                                iva: f.iva
+                            });
+                        }
+                    }
+
+                    refreshAll();
+                    toast('Respaldo restaurado exitosamente');
+                    closeModal('modal-settings');
+                } catch (err) {
+                    console.error('Error al restaurar respaldo:', err);
+                    toast('Error al leer el archivo de respaldo', 'error');
+                }
+                input.value = ''; // Reset file input
+            };
+            reader.readAsText(file);
+        }
+
+        async function confirmWipeDB() {
+            const pin = document.getElementById('wipe-confirm-pin').value;
+
+            if (pin !== state.security.adminPin) {
+                toast('PIN de Soporte incorrecto', 'error');
+                document.getElementById('wipe-confirm-pin').value = '';
+                document.getElementById('wipe-confirm-pin').focus();
+                return;
+            }
+
+            try {
+                // Limpiar datos del state (pero preservar seguridad y conexión)
+                const supaRef = state.supabase;
+                const securityBackup = { ...state.security };
+
+                state.facturas = [];
+                state.gastos = [];
+                state.ingresos = [];
+                state.clientes = [];
+                state.vehiculos = [];
+                state.creditos = [];
+                state.supabase = supaRef;
+                state.security = securityBackup;
+
+                // Limpiar localStorage
+                localStorage.removeItem('transfinanzas_data');
+                localStorage.removeItem('transfinanzas_data_enc');
+
+                // Limpiar Supabase
+                if (state.supabase) {
+                    // Limpiar tabla app_data
+                    await state.supabase.from('app_data').delete().eq('id', 1);
+
+                    // Limpiar tabla facturas
+                    await state.supabase.from('facturas').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+                    // Guardar state limpio con los PINs preservados
+                    await syncToDB();
+                }
+
+                refreshAll();
+                document.getElementById('wipe-confirm-pin').value = '';
+                closeModal('modal-wipe');
+                closeModal('modal-settings');
+                toast('Base de datos limpiada correctamente');
+
+            } catch (err) {
+                console.error('Error al limpiar BD:', err);
+                toast('Error al limpiar la base de datos', 'error');
+            }
+        }
+
+        // INIT — loadData se llama después de conectar BD (en connectAndLoadPins o autoConnectAndResume)
 
         // Keyboard ESC
         document.addEventListener('keydown', e => {
@@ -2871,12 +3839,216 @@
             });
         });
 
+        // ===== GESTIÓN DE BASE DE DATOS =====
+
+        function downloadBackup() {
+            try {
+                const backupData = {
+                    _backup_info: {
+                        app: 'Transportes Verona - Sistema Financiero',
+                        fecha: new Date().toISOString(),
+                        version: '1.0'
+                    },
+                    facturas: state.facturas,
+                    gastos: state.gastos,
+                    ingresos: state.ingresos,
+                    clientes: state.clientes,
+                    vehiculos: state.vehiculos,
+                    creditos: state.creditos,
+                    security: state.security
+                };
+
+                const json = JSON.stringify(backupData, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                const fecha = new Date().toISOString().split('T')[0];
+                const hora = new Date().toTimeString().split(' ')[0].replace(/:/g, '-');
+                a.href = url;
+                a.download = `backup_transportes_verona_${fecha}_${hora}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                toast('Respaldo descargado exitosamente');
+            } catch (err) {
+                console.error('Error al descargar respaldo:', err);
+                toast('Error al crear respaldo', 'error');
+            }
+        }
+
+        function uploadBackup(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // Validar que sea un backup válido
+                    const requiredKeys = ['facturas', 'gastos', 'ingresos', 'clientes'];
+                    const hasKeys = requiredKeys.some(k => Array.isArray(data[k]));
+
+                    if (!hasKeys) {
+                        toast('El archivo no es un respaldo válido', 'error');
+                        input.value = '';
+                        return;
+                    }
+
+                    if (!confirm('¿Estás seguro de restaurar este respaldo? Los datos actuales serán reemplazados.')) {
+                        input.value = '';
+                        return;
+                    }
+
+                    // Restaurar datos
+                    const supaRef = state.supabase;
+                    if (data.facturas) state.facturas = data.facturas;
+                    if (data.gastos) state.gastos = data.gastos;
+                    if (data.ingresos) state.ingresos = data.ingresos;
+                    if (data.clientes) state.clientes = data.clientes;
+                    if (data.vehiculos) state.vehiculos = data.vehiculos;
+                    if (data.creditos) state.creditos = data.creditos;
+                    if (data.security) state.security = data.security;
+                    state.supabase = supaRef;
+
+                    // Sincronizar a local y nube
+                    await syncToDB();
+
+                    // Si hay facturas y Supabase está conectado, sincronizar tabla de facturas
+                    if (state.supabase && state.facturas.length > 0) {
+                        for (const f of state.facturas) {
+                            await state.supabase.from('facturas').upsert({
+                                id: f.id,
+                                numero: f.numero,
+                                cliente_nombre: f.clienteNombre,
+                                monto: f.monto,
+                                estado: f.estado,
+                                fecha: f.fecha,
+                                vencimiento: f.vencimiento,
+                                concepto: f.concepto,
+                                subtotal: f.subtotal,
+                                iva: f.iva
+                            });
+                        }
+                    }
+
+                    refreshAll();
+                    toast('Respaldo restaurado exitosamente');
+                    closeModal('modal-settings');
+                } catch (err) {
+                    console.error('Error al restaurar respaldo:', err);
+                    toast('Error al leer el archivo de respaldo', 'error');
+                }
+                input.value = ''; // Reset file input
+            };
+            reader.readAsText(file);
+        }
+
+        async function confirmWipeDB() {
+            const pin = document.getElementById('wipe-confirm-pin').value;
+
+            if (pin !== state.security.adminPin) {
+                toast('PIN de Soporte incorrecto', 'error');
+                document.getElementById('wipe-confirm-pin').value = '';
+                document.getElementById('wipe-confirm-pin').focus();
+                return;
+            }
+
+            try {
+                // Limpiar datos del state (pero preservar seguridad y conexión)
+                const supaRef = state.supabase;
+                const securityBackup = { ...state.security };
+
+                state.facturas = [];
+                state.gastos = [];
+                state.ingresos = [];
+                state.clientes = [];
+                state.vehiculos = [];
+                state.creditos = [];
+                state.supabase = supaRef;
+                state.security = securityBackup;
+
+                // Limpiar localStorage
+                localStorage.removeItem('transfinanzas_data');
+                localStorage.removeItem('transfinanzas_data_enc');
+
+                // Limpiar Supabase
+                if (state.supabase) {
+                    // Limpiar tabla app_data
+                    await state.supabase.from('app_data').delete().eq('id', 1);
+
+                    // Limpiar tabla facturas
+                    await state.supabase.from('facturas').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+                    // Guardar state limpio con los PINs preservados
+                    await syncToDB();
+                }
+
+                refreshAll();
+                document.getElementById('wipe-confirm-pin').value = '';
+                closeModal('modal-wipe');
+                closeModal('modal-settings');
+                toast('Base de datos limpiada correctamente');
+
+            } catch (err) {
+                console.error('Error al limpiar BD:', err);
+                toast('Error al limpiar la base de datos', 'error');
+            }
+        }
+
         // INIT
+        // Pre-rellenar credenciales de BD guardadas
+        prefillLoginCredentials();
+        // Intentar restaurar sesión (se conectará a BD automáticamente si hay sesión válida)
         checkSession();
-        loadData();
+        // Solo cargar datos si ya hay sesión activa (el login de 2 pasos maneja el resto)
         lucide.createIcons();
+        // Enter key para login
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                const loginOverlay = document.getElementById('login-overlay');
+                if (loginOverlay && loginOverlay.style.display !== 'none') {
+                    const step1 = document.getElementById('login-step-1');
+                    if (step1 && step1.classList.contains('active')) {
+                        connectAndLoadPins();
+                    } else {
+                        doLogin();
+                    }
+                }
+            }
+        });
+        function clean(str) {
+            if (typeof str !== 'string') return str;
+            return str.replace(/[<>]/g, ''); // Sanitización básica anti-HTML
+        }
     </script>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+    <!-- MODAL CONFLICTO DE DATOS -->
+    <div class="modal-overlay" id="modal-conflict">
+        <div class="modal" style="max-width:420px; text-align:center;">
+            <div class="modal-header" style="justify-content:center; border:none; margin-bottom:10px;">
+                <div style="color:var(--yellow);"><i data-lucide="alert-triangle" style="width:40px;height:40px;"></i>
+                </div>
+            </div>
+            <h2 style="margin-bottom:10px; font-family:'Syne',sans-serif; font-size:18px;">Conflicto de Datos</h2>
+            <p style="font-size:14px; color:var(--muted); margin-bottom:24px; line-height:1.5;">
+                Hay una versión más reciente de tus datos en la nube. ¿Qué deseas hacer?
+            </p>
+            <div style="display:grid; gap:10px;">
+                <button class="btn btn-primary" style="width:100%; padding:14px;" onclick="resolveConflict('cloud')">
+                    <i data-lucide="cloud-download" style="width:16px;height:16px;"></i>
+                    Cargar versión de la nube
+                </button>
+                <button class="btn btn-ghost" style="width:100%; padding:14px;" onclick="resolveConflict('local')">
+                    <i data-lucide="hard-drive" style="width:16px;height:16px;"></i>
+                    Mantener la versión actual
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
